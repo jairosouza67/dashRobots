@@ -12,8 +12,6 @@ import Reminders from "./pages/Reminders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
-//eu
-
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
