@@ -1,0 +1,3 @@
+git add netlify.toml
+git commit -m "add netlify config"
+git push
