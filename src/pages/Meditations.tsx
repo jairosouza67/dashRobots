@@ -15,11 +15,10 @@ const AMBIENTS: Ambient[] = [
   { key: 'vento', label: 'Vento calmo' },
 ];
 
-const SESSOES = [
-  { id: 'foco', label: 'Foco (3 min)', minutos: 3 },
-  { id: 'relax', label: 'Relaxamento (5 min)', minutos: 5 },
-  { id: 'sono', label: 'Sono (4 min)', minutos: 4 },
-];
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Brain, Heart, Moon, Focus, Zap } from "lucide-react";
 
 function speak(text: string, lang = 'pt-BR', rate = 1) {
   const u = new SpeechSynthesisUtterance(text);
@@ -127,20 +126,46 @@ export default function Meditations() {
 
   const start = () => {
     setExecutando(true);
-    const minutos = SESSOES.find((x) => x.id === sessao)!.minutos;
+    const sessaoAtual = SESSOES.find((x) => x.id === sessao)!;
+    const minutos = sessaoAtual.minutos;
     setTempoRestante(minutos * 60);
 
-    // roteiro simples
-    speak('Encontre uma postura confortável. Vamos começar sua meditação.');
-    setTimeout(() => speak('Inspire pelo nariz... solte devagar pela boca.'), 2000);
-    setTimeout(() => speak('Observe o ar entrando e saindo. Se pensamentos surgirem, apenas deixe passar.'), 10000);
+    // Roteiro híbrido ou tradicional
+    if (sessaoAtual.type === 'hybrid' && ROTEIROS_HIBRIDOS[sessao as keyof typeof ROTEIROS_HIBRIDOS]) {
+      const roteiro = ROTEIROS_HIBRIDOS[sessao as keyof typeof ROTEIROS_HIBRIDOS];
+      
+      // Introdução
+      speak(roteiro.intro);
+      
+      // Fases programadas
+      roteiro.fases.forEach((fase) => {
+        setTimeout(() => {
+          if (executando) speak(fase.texto);
+        }, fase.tempo * 1000);
+      });
+      
+      // Encerramento programado
+      setTimeout(() => {
+        if (executando) speak(roteiro.encerramento);
+      }, (minutos * 60 - 10) * 1000);
+    } else {
+      // Roteiro tradicional simples
+      speak('Encontre uma postura confortável. Vamos começar sua meditação.');
+      setTimeout(() => speak('Inspire pelo nariz... solte devagar pela boca.'), 2000);
+      setTimeout(() => speak('Observe o ar entrando e saindo. Se pensamentos surgirem, apenas deixe passar.'), 10000);
+    }
 
     timerRef.current = window.setInterval(() => {
       setTempoRestante((t) => {
         if (t <= 1) {
           stop();
-          speak('Encerrando. Leve essa calma com você.');
+          speak('Encerrando. Leve essa calma e clareza com você.');
           updateStats(minutos);
+          // Atualizar estatísticas específicas
+          const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
+          localStorage.setItem('rz_meditation_sessions', String(meditationSessions));
+          const totalSessions = Number(localStorage.getItem('rz_sessions_completed') || '0') + 1;
+          localStorage.setItem('rz_sessions_completed', String(totalSessions));
           return 0;
         }
         return t - 1;
@@ -165,60 +190,227 @@ export default function Meditations() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      <SEO title="RespiraZen — Meditações Curtas" description="Meditações guiadas por voz de 1 a 5 minutos com sons ambientes gerados no app." />
-      <div className="container mx-auto py-10 grid lg:grid-cols-2 gap-10 items-start">
-        <section className="space-y-6 animate-fade-in">
-          <h1 className="text-3xl md:text-4xl font-bold">Meditações Curtas</h1>
-          <p className="text-muted-foreground">Escolha uma sessão, ative sons ambientes e aperte Iniciar.</p>
+      <SEO title="RespiraZen — Meditações Híbridas" description="Meditações guiadas com técnicas híbridas de neuroplasticidade e mindfulness." />
+      
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold">Meditações Híbridas</h1>
+          <p className="text-muted-foreground">
+            Técnicas avançadas que combinam mindfulness, neuroplasticidade e ancoragem neural.
+          </p>
+        </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Sessão</Label>
-              <Select value={sessao} onValueChange={setSessao}>
-                <SelectTrigger><SelectValue placeholder="Escolha" /></SelectTrigger>
-                <SelectContent>
-                  {SESSOES.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <Tabs defaultValue="sessoes" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="sessoes">Sessões</TabsTrigger>
+            <TabsTrigger value="ambientes">Sons Ambientes</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="sessoes" className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {SESSOES.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <Card 
+                    key={s.id} 
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      sessao === s.id ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => setSessao(s.id)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <Icon className="h-5 w-5 text-primary" />
+                        <Badge variant={s.type === 'hybrid' ? 'default' : 'secondary'}>
+                          {s.type === 'hybrid' ? 'Híbrida' : 'Tradicional'}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg">{s.label}</CardTitle>
+                      <CardDescription>{s.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="text-sm text-muted-foreground">
+                          Duração: {s.minutos} minutos
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {s.techniques.map((tech) => (
+                            <Badge key={tech} variant="outline" className="text-xs">
+                              {tech}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            {!executando ? (
-              <Button variant="hero" size="lg" onClick={start}>Iniciar</Button>
-            ) : (
-              <Button variant="secondary" size="lg" onClick={stop}>Parar</Button>
-            )}
-            <div className="text-sm text-muted-foreground">Tempo restante: {Math.floor(tempoRestante/60)}:{String(tempoRestante%60).padStart(2,'0')}</div>
-          </div>
-        </section>
-
-        <aside className="space-y-6">
-          <h2 className="text-xl font-semibold">Sons ambientes</h2>
-          <div className="space-y-4">
-            {AMBIENTS.map(({ key, label }) => (
-              <div key={key} className="rounded-lg border p-4">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium">{label}</div>
-                  <Button variant={ambienteAtivo[key] ? 'secondary' : 'soft'} onClick={() => toggleAmbient(key)}>
-                    {ambienteAtivo[key] ? 'Desativar' : 'Ativar'}
-                  </Button>
+            <div className="flex items-center gap-4">
+              {!executando ? (
+                <Button variant="hero" size="lg" onClick={start} className="min-w-[120px]">
+                  Iniciar Sessão
+                </Button>
+              ) : (
+                <Button variant="secondary" size="lg" onClick={stop} className="min-w-[120px]">
+                  Parar
+                </Button>
+              )}
+              
+              {executando && (
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <div className="text-sm text-muted-foreground">
+                    Tempo restante: {Math.floor(tempoRestante/60)}:{String(tempoRestante%60).padStart(2,'0')}
+                  </div>
                 </div>
-                <div className="mt-3 space-y-2">
-                  <Label>Volume</Label>
-                  <Slider value={[volume[key] ?? 0.25]} min={0} max={1} step={0.01} onValueChange={(v) => setAmbientVolume(key, v[0])} />
-                </div>
-              </div>
-            ))}
-          </div>
+              )}
+            </div>
+          </TabsContent>
 
-          <div className="rounded-lg border p-4 bg-secondary/50">
-            <p className="text-sm text-muted-foreground">Dica: ative o modo Não Perturbe no celular para uma experiência mais calma.</p>
-          </div>
-        </aside>
+          <TabsContent value="ambientes" className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              {AMBIENTS.map(({ key, label }) => (
+                <Card key={key}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{label}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Button 
+                        variant={ambienteAtivo[key] ? 'default' : 'outline'} 
+                        onClick={() => toggleAmbient(key)}
+                        className="min-w-[100px]"
+                      >
+                        {ambienteAtivo[key] ? 'Ativo' : 'Ativar'}
+                      </Button>
+                      {ambienteAtivo[key] && (
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Volume: {Math.round((volume[key] ?? 0.25) * 100)}%</Label>
+                      <Slider 
+                        value={[volume[key] ?? 0.25]} 
+                        min={0} 
+                        max={1} 
+                        step={0.01} 
+                        onValueChange={(v) => setAmbientVolume(key, v[0])} 
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Dicas para Sons Ambientes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>• Use fones de ouvido para uma experiência mais imersiva</p>
+                  <p>• Ajuste o volume para que seja sutil, não dominante</p>
+                  <p>• Experimente diferentes combinações para encontrar sua preferência</p>
+                  <p>• Os sons podem ajudar a mascarar ruídos externos</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
 }
+
+// Expandindo as sessões com conteúdo híbrido
+const SESSOES = [
+  { 
+    id: 'foco', 
+    label: 'Foco Profundo', 
+    minutos: 5, 
+    icon: Focus,
+    description: 'Desenvolva concentração e clareza mental',
+    type: 'hybrid',
+    techniques: ['respiração', 'visualização', 'ancoragem']
+  },
+  { 
+    id: 'relax', 
+    label: 'Relaxamento Ativo', 
+    minutos: 7, 
+    icon: Heart,
+    description: 'Libere tensões e restaure energia',
+    type: 'hybrid',
+    techniques: ['body scan', 'respiração', 'sons ambientes']
+  },
+  { 
+    id: 'sono', 
+    label: 'Preparação para o Sono', 
+    minutos: 10, 
+    icon: Moon,
+    description: 'Acalme a mente para um sono reparador',
+    type: 'traditional',
+    techniques: ['respiração lenta', 'relaxamento progressivo']
+  },
+  {
+    id: 'reprogramacao',
+    label: 'Reprogramação Mental',
+    minutos: 8,
+    icon: Brain,
+    description: 'Transforme padrões mentais limitantes',
+    type: 'hybrid',
+    techniques: ['afirmações', 'visualização', 'ancoragem neural']
+  },
+  {
+    id: 'energia',
+    label: 'Ativação Energética',
+    minutos: 6,
+    icon: Zap,
+    description: 'Desperte vitalidade e motivação',
+    type: 'hybrid',
+    techniques: ['respiração energizante', 'movimento sutil', 'intenção']
+  }
+];
+
+// Roteiros híbridos expandidos
+const ROTEIROS_HIBRIDOS = {
+  foco: {
+    intro: "Vamos desenvolver seu foco com técnicas híbridas de concentração.",
+    fases: [
+      { tempo: 30, texto: "Feche os olhos e respire naturalmente. Sinta seu corpo se acomodando." },
+      { tempo: 60, texto: "Agora, imagine uma luz dourada no centro da sua testa. Essa é sua luz de foco." },
+      { tempo: 90, texto: "A cada inspiração, essa luz fica mais brilhante. A cada expiração, ela se expande." },
+      { tempo: 120, texto: "Quando pensamentos surgirem, simplesmente os observe e retorne à luz dourada." },
+      { tempo: 180, texto: "Sinta como essa luz representa sua capacidade natural de concentração." },
+      { tempo: 240, texto: "Agora, ancoremos esse estado. Pressione suavemente o polegar e indicador direitos." },
+      { tempo: 270, texto: "Essa é sua âncora de foco. Use-a sempre que precisar de concentração." }
+    ],
+    encerramento: "Lentamente, abra os olhos mantendo essa sensação de clareza e foco."
+  },
+  reprogramacao: {
+    intro: "Vamos reprogramar padrões mentais com técnicas de neuroplasticidade.",
+    fases: [
+      { tempo: 45, texto: "Respire profundamente e conecte-se com sua intenção de mudança." },
+      { tempo: 90, texto: "Identifique um padrão que você deseja transformar. Apenas observe, sem julgamento." },
+      { tempo: 150, texto: "Agora, visualize como você gostaria de ser. Veja-se agindo de forma nova e positiva." },
+      { tempo: 210, texto: "Repita mentalmente: 'Eu escolho pensamentos que me fortalecem e me elevam.'" },
+      { tempo: 270, texto: "Sinta essa nova versão de você se integrando em cada célula do seu corpo." },
+      { tempo: 330, texto: "Crie uma âncora: toque o coração e diga 'Eu sou capaz de mudança positiva.'" },
+      { tempo: 390, texto: "Essa transformação já começou. Confie no processo natural da sua mente." }
+    ],
+    encerramento: "Abra os olhos sabendo que plantou sementes de transformação positiva."
+  },
+  energia: {
+    intro: "Vamos ativar sua energia vital com respiração e movimento consciente.",
+    fases: [
+      { tempo: 30, texto: "Sente-se ereto, coluna alinhada. Respire profundamente pelo nariz." },
+      { tempo: 60, texto: "Inspire contando até 4, segure por 4, expire por 6. Sinta a energia circulando." },
+      { tempo: 120, texto: "Mova suavemente os ombros para cima e para baixo, liberando tensões." },
+      { tempo: 180, texto: "Imagine energia dourada subindo pela sua coluna a cada inspiração." },
+      { tempo: 240, texto: "Essa energia se espalha por todo seu corpo, vitalizando cada célula." },
+      { tempo: 300, texto: "Sorria suavemente. Sinta gratidão por essa vitalidade natural." }
+    ],
+    encerramento: "Abra os olhos sentindo-se energizado e pronto para o dia."
+  }
+};

@@ -1,16 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
+// Sequência sugerida para começar:
+1. Toque em "🫁 Respirar" → Experimente "Box 4-4-4-4"
+2. Faça uma sessão de 2-3 minutos
+3. Vá para "🧘 Meditar" → Teste 2 minutos com som de chuva
+4. Confira "📊 Progresso" para ver suas primeiras estatísticas
+5. Configure "🔔 Lembretes" para manter a prática regular<!DOCTYPE html>
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RespiraZen — Respiração Guiada e Meditação</title>
-    <meta name="description" content="Pratique respiração guiada e meditações curtas para foco, relaxamento e sono. RespiraZen ajuda você a respirar melhor em minutos." />
+    <title>RespiraZen — Guia de Meditação Híbrida</title>
+    <meta name="description" content="Desbloqueando a Fluência e o Autocontrole através da meditação híbrida. Pratique respiração guiada e meditações curtas para transformação pessoal." />
     <meta name="author" content="RespiraZen" />
+
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="RespiraZen" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
 
     <link rel="canonical" href="https://dee8e0b5-6fae-437f-832b-1a7bfb719b7b.lovableproject.com/" />
 
-    <meta property="og:title" content="RespiraZen — Respiração Guiada e Meditação" />
-    <meta property="og:description" content="Respiração guiada, meditações curtas e sons ambientes. Alcance calma em 1 minuto." />
+    <meta property="og:title" content="RespiraZen — Guia de Meditação Híbrida" />
+    <meta property="og:description" content="Desbloqueando a Fluência e o Autocontrole. Respiração guiada, meditações curtas e transformação pessoal." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/images/og-breath.jpg" />
 
@@ -22,5 +43,20 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
