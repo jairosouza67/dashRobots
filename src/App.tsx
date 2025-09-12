@@ -18,33 +18,41 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+import { ThemeProvider } from "./context/ThemeContext";
+import { ContentLibrary } from "./components/Library/ContentLibrary";
+import { ThemeSelector } from "./components/Settings/ThemeSelector";
+
 function App() {
   const isMobile = useIsMobile();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="min-h-screen bg-background">
-            <Header />
-            <main className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/respirar" element={<Breathing />} />
-                <Route path="/meditacoes" element={<Meditations />} />
-                <Route path="/estatisticas" element={<Stats />} />
-                <Route path="/progresso" element={<Progress />} />
-                <Route path="/lembretes" element={<Reminders />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            {isMobile && <BottomNavigation />}
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="min-h-screen bg-background">
+              <Header />
+              <ThemeSelector />
+              <main className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/respirar" element={<Breathing />} />
+                  <Route path="/meditacoes" element={<Meditations />} />
+                  <Route path="/estatisticas" element={<Stats />} />
+                  <Route path="/progresso" element={<Progress />} />
+                  <Route path="/lembretes" element={<Reminders />} />
+                  <Route path="/biblioteca" element={<ContentLibrary />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              {isMobile && <BottomNavigation />}
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

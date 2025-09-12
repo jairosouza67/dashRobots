@@ -19,7 +19,8 @@ const navItems: NavItem[] = [
   { to: "/respirar", icon: Wind, label: "Respirar" },
   { to: "/meditacoes", icon: Brain, label: "Meditar" },
   { to: "/estatisticas", icon: BarChart3, label: "Progresso" },
-  { to: "/lembretes", icon: Bell, label: "Lembretes" }
+  { to: "/lembretes", icon: Bell, label: "Lembretes" },
+  { to: "/biblioteca", icon: BarChart3, label: "Biblioteca" }
 ];
 
 export const BottomNavigation = () => {

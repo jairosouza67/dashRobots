@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { CustomPatternModal } from "@/components/Breathing/CustomPatternModal";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/SEO";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,6 +38,22 @@ import { Slider } from "@/components/ui/slider";
  export default function Breathing() {
   const [patternKey, setPatternKey] = useState<keyof typeof PATTERNS>('box');
   const durations = PATTERNS[patternKey].durations; // [inspire, segure, expire]
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customPatterns, setCustomPatterns] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('rz_custom_patterns');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const handleSavePattern = (pattern: any) => {
+    const updated = [...customPatterns, pattern];
+    setCustomPatterns(updated);
+    localStorage.setItem('rz_custom_patterns', JSON.stringify(updated));
+    setShowCustomModal(false);
+  };
   const [bpm, setBpm] = useState(6); // breaths per minute visual pacing (for ring animation smoothness)
   const [running, setRunning] = useState(false);
   const [phase, setPhase] = useState<Phase>('inspire');
@@ -107,6 +124,26 @@ import { Slider } from "@/components/ui/slider";
         <section className="order-2 lg:order-1 space-y-6 animate-fade-in">
           <h1 className="text-3xl md:text-4xl font-bold">Respiração Guiada</h1>
           <p className="text-muted-foreground">Escolha um padrão e aperte Começar. Opção de vibração para indicar mudanças de fase.</p>
+
+          <div className="mb-4">
+            <button onClick={() => setShowCustomModal(true)} className="btn btn-primary">Criar padrão personalizado</button>
+            {showCustomModal && (
+              <CustomPatternModal
+                onSave={handleSavePattern}
+                onClose={() => setShowCustomModal(false)}
+              />
+            )}
+            {customPatterns.length > 0 && (
+              <div className="mt-4">
+                <h3>Meus padrões</h3>
+                <ul>
+                  {customPatterns.map((p, i) => (
+                    <li key={i}>{p.name} ({p.inhale}-{p.hold}-{p.exhale}-{p.rest})</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">

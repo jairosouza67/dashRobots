@@ -1,0 +1,20 @@
+:root {
+  --bg: #fff;
+  --text: #222;
+}
+[data-theme="dark"] {
+  --bg: #222;
+  --text: #fff;
+}
+[data-theme="blue"] {
+  --bg: #e3f0ff;
+  --text: #003366;
+}
+[data-theme="green"] {
+  --bg: #eaffea;
+  --text: #225522;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+}
