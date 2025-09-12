@@ -19,7 +19,6 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 import { ThemeProvider } from "./context/ThemeContext";
-import { ContentLibrary } from "./components/Library/ContentLibrary";
 import { ThemeSelector } from "./components/Settings/ThemeSelector";
 
 function App() {
@@ -34,7 +33,6 @@ function App() {
           <BrowserRouter>
             <div className="min-h-screen bg-background">
               <Header />
-              <ThemeSelector />
               <main className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -43,7 +41,6 @@ function App() {
                   <Route path="/estatisticas" element={<Stats />} />
                   <Route path="/progresso" element={<Progress />} />
                   <Route path="/lembretes" element={<Reminders />} />
-                  <Route path="/biblioteca" element={<ContentLibrary />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
