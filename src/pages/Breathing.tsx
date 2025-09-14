@@ -135,84 +135,128 @@ import { Slider } from "@/components/ui/slider";
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-background">
+    <div className="min-h-[calc(100vh-4rem)] relative overflow-hidden">
+      {/* Imagem de fundo */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80"
+        style={{
+          backgroundImage: 'url(/water-background.jpg)'
+        }}
+      ></div>
+      
+      {/* Overlay gradiente para melhor legibilidade */}
+       <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/40 to-white/50"></div>
+      
       <SEO title="RespiraZen — Sessão de Respiração" description="Sessões de respiração guiada com ritmos box, 4-7-8 e coerência. Toque em Começar para respirar melhor." />
-      <div className="container mx-auto py-10 grid lg:grid-cols-2 gap-10 items-center">
-        <section className="order-2 lg:order-1 space-y-6 animate-fade-in">
-          <h1 className="text-3xl md:text-4xl font-bold">Respiração Guiada</h1>
-          <p className="text-muted-foreground">Escolha um padrão e aperte Começar. Opção de vibração para indicar mudanças de fase.</p>
+      <div className="container mx-auto py-8 px-6 relative z-10">
+        <h1 className="text-4xl font-bold text-gray-900 mb-3">Respiração Guiada</h1>
+        <p className="text-gray-800 text-lg font-semibold mb-8">Escolha um padrão e aperte Começar. Opção de vibração para indicar mudanças de fase.</p>
+        
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
 
-          <div className="mb-4">
-            <button onClick={() => setShowCustomModal(true)} className="btn btn-primary">Criar padrão personalizado</button>
-            {showCustomModal && (
-              <CustomPatternModal
-                onSave={handleSavePattern}
-                onClose={() => setShowCustomModal(false)}
-              />
-            )}
-            {customPatterns.length > 0 && (
-              <div className="mt-4">
-                <h3>Meus padrões</h3>
-                <ul>
-                  {customPatterns.map((p, i) => (
-                    <li key={i}>{p.name} ({p.inhale}-{p.hold}-{p.exhale}-{p.rest})</li>
-                  ))}
-                </ul>
+
+          <section className="order-2 lg:order-1 space-y-6">
+
+            <div className="space-y-4">
+                {showCustomModal && (
+                  <CustomPatternModal
+                    onSave={handleSavePattern}
+                    onClose={() => setShowCustomModal(false)}
+                  />
+                )}
+                {customPatterns.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium text-gray-700">Meus padrões</h3>
+                    <ul className="mt-2 space-y-1">
+                      {customPatterns.map((p, i) => (
+                        <li key={i} className="text-sm text-gray-600">{p.name} ({p.inhale}-{p.hold}-{p.exhale}-{p.rest})</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">Padrão</Label>
+                <Select value={patternKey} onValueChange={(v) => setPatternKey(v as keyof typeof PATTERNS)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Escolha" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PATTERNS).map(([key, p]) => (
+                      <SelectItem key={key} value={key}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
-          </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Padrão</Label>
-              <Select value={patternKey} onValueChange={(v) => setPatternKey(v as keyof typeof PATTERNS)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Escolha" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PATTERNS).map(([key, p]) => (
-                    <SelectItem key={key} value={key}>{p.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">Respirações por minuto: {bpm}</Label>
+                <Slider value={[bpm]} min={4} max={10} step={1} onValueChange={(v) => setBpm(v[0])} className="w-full" />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-gray-700">Vibração:</Label>
+                <button 
+                  onClick={() => setVibrate((v) => !v)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    vibrate ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
+                  aria-pressed={vibrate}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    vibrate ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+
+              <div className="text-xs text-gray-500 space-y-1">
+                <div>Tempo: {formatTime(elapsed)} • Fase: <span className="font-medium text-gray-700">{phaseLabel}</span> • Próx.: {remaining}s</div>
+              </div>
+
+
             </div>
+          </section>
 
-            <div className="space-y-2">
-              <Label>Respirações por minuto: {bpm}</Label>
-              <Slider value={[bpm]} min={4} max={10} step={1} onValueChange={(v) => setBpm(v[0])} />
+          <section className="order-1 lg:order-2 flex items-center justify-center">
+            <div className="relative">
+            <div
+              className={`w-80 h-80 rounded-full transition-all duration-1000 flex items-center justify-center cursor-pointer shadow-2xl ${
+                running
+                  ? phase === 'inspire'
+                    ? 'scale-110'
+                    : phase === 'segure'
+                    ? 'scale-110'
+                    : phase === 'expire'
+                    ? 'scale-90'
+                    : 'scale-90'
+                  : 'hover:scale-105'
+              }`}
+              onClick={handleCircleClick}
+              style={{
+                 background: running 
+                   ? phase === 'inspire'
+                     ? 'radial-gradient(circle, rgba(59, 130, 246, 0.95) 0%, rgba(147, 197, 253, 0.8) 50%, rgba(219, 234, 254, 0.6) 100%)'
+                     : phase === 'segure'
+                     ? 'radial-gradient(circle, rgba(168, 85, 247, 0.95) 0%, rgba(196, 181, 253, 0.8) 50%, rgba(233, 213, 255, 0.6) 100%)'
+                     : phase === 'expire'
+                     ? 'radial-gradient(circle, rgba(34, 197, 94, 0.95) 0%, rgba(134, 239, 172, 0.8) 50%, rgba(220, 252, 231, 0.6) 100%)'
+                     : 'radial-gradient(circle, rgba(59, 130, 246, 0.9) 0%, rgba(147, 197, 253, 0.7) 50%, rgba(219, 234, 254, 0.5) 100%)'
+                   : 'radial-gradient(circle, rgba(71, 85, 105, 0.9) 0%, rgba(148, 163, 184, 0.7) 50%, rgba(226, 232, 240, 0.5) 100%)'
+               }}
+            >
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2 drop-shadow-2xl">
+                  {running ? phaseLabel : 'Inspire'}
+                </div>
+                <div className="text-sm text-white/90 drop-shadow-lg font-medium">
+                  {running ? '' : 'Clique em Iniciar para começar'}
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button variant="soft" onClick={() => setVibrate((v) => !v)} aria-pressed={vibrate}>
-              Vibração: {vibrate ? 'Ativa' : 'Desativada'}
-            </Button>
-          </div>
-
-          <div className="text-sm text-muted-foreground">Tempo: {formatTime(elapsed)} • Fase: <span className="font-medium text-foreground">{phaseLabel}</span> • Próx.: {remaining}s</div>
-        </section>
-
-        <section className="order-1 lg:order-2 flex items-center justify-center">
-          <div
-            className="relative h-[320px] w-[320px] md:h-[380px] md:w-[380px] rounded-full border border-primary/20 bg-gradient-primary shadow-[var(--shadow-elegant)] transition-all cursor-pointer hover:shadow-2xl hover:border-primary/40"
-            style={{
-              transform: `scale(${scale})`,
-              transition: `transform ${breathingMs}ms ease-in-out, box-shadow 0.3s ease, border-color 0.3s ease`,
-            }}
-            onClick={handleCircleClick}
-            aria-label={`Círculo respiratório. Fase atual: ${phaseLabel}. Clique para ${running ? 'parar' : 'iniciar'}`}
-          >
-            <div className="absolute inset-6 rounded-full border-2 border-primary/30" />
-            <div className="absolute inset-0 rounded-full blur-2xl opacity-40" style={{ backgroundImage: 'var(--gradient-primary)' }} />
-            <div className="absolute inset-0 flex items-center justify-center flex-col">
-               <span className="text-3xl md:text-4xl font-bold mb-2">{phaseLabel}</span>
-               {!running && (
-                 <span className="text-sm text-muted-foreground animate-pulse">Clique para iniciar</span>
-               )}
-             </div>
-          </div>
-        </section>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );
- }
+}
