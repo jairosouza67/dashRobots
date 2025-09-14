@@ -153,6 +153,7 @@ function updateStats(minutos: number) {
 export default function Meditations() {
   const [sessao, setSessao] = useState(SESSOES[0].id);
   const [executando, setExecutando] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [tempoRestante, setTempoRestante] = useState(SESSOES[0].minutos * 60);
   const [ambienteAtivo, setAmbienteAtivo] = useState<Record<string, boolean>>({});
   const [volume, setVolume] = useState<Record<string, number>>({ chuva: 0.3, vento: 0.25 });
@@ -379,13 +380,13 @@ export default function Meditations() {
       // Fases programadas
       roteiro.fases.forEach((fase) => {
         setTimeout(() => {
-          if (executando) speak(fase.texto);
+          if (executando && !isPaused) speak(fase.texto);
         }, fase.tempo * 1000);
       });
       
       // Encerramento programado
       setTimeout(() => {
-        if (executando) speak(roteiro.encerramento);
+        if (executando && !isPaused) speak(roteiro.encerramento);
       }, (minutos * 60 - 10) * 1000);
     } else {
       // Roteiro tradicional simples
@@ -395,25 +396,64 @@ export default function Meditations() {
     }
 
     timerRef.current = window.setInterval(() => {
-      setTempoRestante((t) => {
-        if (t <= 1) {
-          stop();
-          speak('Encerrando. Leve essa calma e clareza com você.');
-          updateStats(minutos);
-          // Atualizar estatísticas específicas
-          const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
-          localStorage.setItem('rz_meditation_sessions', String(meditationSessions));
-          const totalSessions = Number(localStorage.getItem('rz_sessions_completed') || '0') + 1;
-          localStorage.setItem('rz_sessions_completed', String(totalSessions));
-          return 0;
-        }
-        return t - 1;
-      });
+      if (!isPaused) {
+        setTempoRestante((t) => {
+          if (t <= 1) {
+            stop();
+            setIsPaused(false);
+            speak('Encerrando. Leve essa calma e clareza com você.');
+            updateStats(minutos);
+            // Atualizar estatísticas específicas
+            const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
+            localStorage.setItem('rz_meditation_sessions', String(meditationSessions));
+            const totalSessions = Number(localStorage.getItem('rz_sessions_completed') || '0') + 1;
+            localStorage.setItem('rz_sessions_completed', String(totalSessions));
+            return 0;
+          }
+          return t - 1;
+        });
+      }
     }, 1000);
+  };
+
+  const pauseCustomAudio = () => {
+    if (customAudioRef.current) {
+      if (customAudioRef.current instanceof HTMLAudioElement) {
+        customAudioRef.current.pause();
+      }
+      // Para YouTube, não há controle direto de pause, mas podemos silenciar
+    }
+  };
+
+  const resumeCustomAudio = () => {
+    if (customAudioRef.current) {
+      if (customAudioRef.current instanceof HTMLAudioElement) {
+        customAudioRef.current.play().catch(error => {
+          console.error('Erro ao retomar áudio:', error);
+        });
+      }
+      // Para YouTube, não há controle direto de resume
+    }
+  };
+
+  const togglePause = () => {
+    if (isPaused) {
+      setIsPaused(false);
+      // Manter executando como true quando retomar
+      setExecutando(true);
+      resumeCustomAudio();
+      window.speechSynthesis.resume();
+    } else {
+      setIsPaused(true);
+      // Manter executando como true mesmo quando pausado
+      pauseCustomAudio();
+      window.speechSynthesis.pause();
+    }
   };
 
   const stop = () => {
     setExecutando(false);
+    setIsPaused(false);
     if (timerRef.current) window.clearInterval(timerRef.current);
     timerRef.current = null;
     
@@ -591,7 +631,7 @@ export default function Meditations() {
                       <CardDescription>{s.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="text-sm text-muted-foreground">
                           Duração: {s.minutos} minutos
                         </div>
@@ -602,6 +642,60 @@ export default function Meditations() {
                             </Badge>
                           ))}
                         </div>
+                        {/* Timer regressivo dentro do card */}
+                        {(executando || isPaused) && sessao === s.id && (
+                          <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="text-center">
+                              <div className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                                {Math.floor(tempoRestante / 60)}:{(tempoRestante % 60).toString().padStart(2, '0')}
+                              </div>
+                              <div className="text-xs text-blue-700 dark:text-blue-300">
+                                {isPaused ? 'Pausado' : 'Tempo restante'}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {/* Botões de controle */}
+                        {(executando || isPaused) && sessao === s.id ? (
+                          <div className="flex gap-2 mt-3">
+                            <Button 
+                              variant={isPaused ? "default" : "secondary"}
+                              size="sm" 
+                              className="flex-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePause();
+                              }}
+                            >
+                              {isPaused ? 'Retomar' : 'Pausar'}
+                            </Button>
+                            <Button 
+                              variant="destructive"
+                              size="sm" 
+                              className="flex-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                stop();
+                                setIsPaused(false);
+                              }}
+                            >
+                              Encerrar
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button 
+                            variant="default"
+                            size="sm" 
+                            className="w-full mt-3"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSessao(s.id);
+                              start();
+                            }}
+                          >
+                            Iniciar
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -609,26 +703,7 @@ export default function Meditations() {
               })}
             </div>
 
-            <div className="flex items-center gap-4">
-              {!executando ? (
-                <Button variant="hero" size="lg" onClick={start} className="min-w-[120px]">
-                  Iniciar Sessão
-                </Button>
-              ) : (
-                <Button variant="secondary" size="lg" onClick={stop} className="min-w-[120px]">
-                  Parar
-                </Button>
-              )}
-              
-              {executando && (
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <div className="text-sm text-muted-foreground">
-                    Tempo restante: {Math.floor(tempoRestante/60)}:{String(tempoRestante%60).padStart(2,'0')}
-                  </div>
-                </div>
-              )}
-            </div>
+
           </TabsContent>
 
           <TabsContent value="ambientes" className="space-y-6">
