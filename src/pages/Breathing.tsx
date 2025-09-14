@@ -113,9 +113,17 @@ import { Slider } from "@/components/ui/slider";
 
   const radius = 120;
   const baseScale = 0.85;
-  const scale = phase === 'inspire' ? 1.0 : phase === 'segure' ? 0.95 : 0.85;
+  const scale = phase === 'inspire' ? 1.15 : phase === 'segure' ? 1.0 : 0.85;
 
   const breathingMs = Math.round((60 / bpm) * 1000);
+
+  const handleCircleClick = () => {
+    if (!running) {
+      setRunning(true);
+    } else {
+      stop();
+    }
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background">
@@ -167,11 +175,6 @@ import { Slider } from "@/components/ui/slider";
           </div>
 
           <div className="flex items-center gap-3">
-            {!running ? (
-              <Button variant="hero" size="xl" onClick={() => setRunning(true)} className="hover-scale">Começar</Button>
-            ) : (
-              <Button variant="secondary" size="xl" onClick={stop}>Encerrar</Button>
-            )}
             <Button variant="soft" onClick={() => setVibrate((v) => !v)} aria-pressed={vibrate}>
               Vibração: {vibrate ? 'Ativa' : 'Desativada'}
             </Button>
@@ -182,18 +185,22 @@ import { Slider } from "@/components/ui/slider";
 
         <section className="order-1 lg:order-2 flex items-center justify-center">
           <div
-            className="relative h-[320px] w-[320px] md:h-[380px] md:w-[380px] rounded-full border border-primary/20 bg-gradient-primary shadow-[var(--shadow-elegant)] transition-transform"
+            className="relative h-[320px] w-[320px] md:h-[380px] md:w-[380px] rounded-full border border-primary/20 bg-gradient-primary shadow-[var(--shadow-elegant)] transition-all cursor-pointer hover:shadow-2xl hover:border-primary/40"
             style={{
               transform: `scale(${scale})`,
-              transition: `transform ${breathingMs}ms ease-in-out`,
+              transition: `transform ${breathingMs}ms ease-in-out, box-shadow 0.3s ease, border-color 0.3s ease`,
             }}
-            aria-label={`Círculo respiratório. Fase atual: ${phaseLabel}`}
+            onClick={handleCircleClick}
+            aria-label={`Círculo respiratório. Fase atual: ${phaseLabel}. Clique para ${running ? 'parar' : 'iniciar'}`}
           >
             <div className="absolute inset-6 rounded-full border-2 border-primary/30" />
             <div className="absolute inset-0 rounded-full blur-2xl opacity-40" style={{ backgroundImage: 'var(--gradient-primary)' }} />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-lg font-medium">{phaseLabel}</span>
-            </div>
+            <div className="absolute inset-0 flex items-center justify-center flex-col">
+               <span className="text-3xl md:text-4xl font-bold mb-2">{phaseLabel}</span>
+               {!running && (
+                 <span className="text-sm text-muted-foreground animate-pulse">Clique para iniciar</span>
+               )}
+             </div>
           </div>
         </section>
       </div>
