@@ -4,10 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Brain, Heart, Moon, Focus, Zap, Music, Upload, Settings } from "lucide-react";
 
 interface Ambient {
   key: 'chuva' | 'vento';
   label: string;
+}
+
+interface CustomAudio {
+  type: 'youtube' | 'mp3' | 'none';
+  url: string;
+  volume: number;
 }
 
 const AMBIENTS: Ambient[] = [
@@ -15,10 +27,107 @@ const AMBIENTS: Ambient[] = [
   { key: 'vento', label: 'Vento calmo' },
 ];
 
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Heart, Moon, Focus, Zap } from "lucide-react";
+const SESSOES = [
+  { 
+    id: 'foco', 
+    label: 'Foco Profundo', 
+    minutos: 5, 
+    icon: Focus,
+    description: 'Desenvolva concentração e clareza mental',
+    type: 'hybrid',
+    techniques: ['respiração', 'visualização', 'ancoragem']
+  },
+  { 
+    id: 'relax', 
+    label: 'Relaxamento Ativo', 
+    minutos: 7, 
+    icon: Heart,
+    description: 'Libere tensões e restaure energia',
+    type: 'hybrid',
+    techniques: ['body scan', 'respiração', 'sons ambientes']
+  },
+  { 
+    id: 'sono', 
+    label: 'Preparação para o Sono', 
+    minutos: 10, 
+    icon: Moon,
+    description: 'Acalme a mente para um sono reparador',
+    type: 'traditional',
+    techniques: ['respiração lenta', 'relaxamento progressivo']
+  },
+  {
+    id: 'reprogramacao',
+    label: 'Reprogramação Mental',
+    minutos: 8,
+    icon: Brain,
+    description: 'Transforme padrões mentais limitantes',
+    type: 'hybrid',
+    techniques: ['afirmações', 'visualização', 'ancoragem neural']
+  },
+  {
+    id: 'energia',
+    label: 'Ativação Energética',
+    minutos: 6,
+    icon: Zap,
+    description: 'Desperte vitalidade e motivação',
+    type: 'hybrid',
+    techniques: ['respiração energizante', 'movimento sutil', 'intenção']
+  }
+];
+
+const ROTEIROS_HIBRIDOS = {
+  foco: {
+    intro: "Vamos desenvolver seu foco com técnicas híbridas de concentração.",
+    fases: [
+      { tempo: 30, texto: "Feche os olhos e respire naturalmente. Sinta seu corpo se acomodando." },
+      { tempo: 60, texto: "Agora, imagine uma luz dourada no centro da sua testa. Essa é sua luz de foco." },
+      { tempo: 90, texto: "A cada inspiração, essa luz fica mais brilhante. A cada expiração, ela se expande." },
+      { tempo: 120, texto: "Quando pensamentos surgirem, simplesmente os observe e retorne à luz dourada." },
+      { tempo: 180, texto: "Sinta como essa luz representa sua capacidade natural de concentração." },
+      { tempo: 240, texto: "Agora, ancoremos esse estado. Pressione suavemente o polegar e indicador direitos." },
+      { tempo: 270, texto: "Essa é sua âncora de foco. Use-a sempre que precisar de concentração." }
+    ],
+    encerramento: "Lentamente, abra os olhos mantendo essa sensação de clareza e foco."
+  },
+  reprogramacao: {
+    intro: "Vamos reprogramar padrões mentais com técnicas de neuroplasticidade.",
+    fases: [
+      { tempo: 45, texto: "Respire profundamente e conecte-se com sua intenção de mudança." },
+      { tempo: 90, texto: "Identifique um padrão que você deseja transformar. Apenas observe, sem julgamento." },
+      { tempo: 150, texto: "Agora, visualize como você gostaria de ser. Veja-se agindo de forma nova e positiva." },
+      { tempo: 210, texto: "Repita mentalmente: 'Eu escolho pensamentos que me fortalecem e me elevam.'" },
+      { tempo: 270, texto: "Sinta essa nova versão de você se integrando em cada célula do seu corpo." },
+      { tempo: 330, texto: "Crie uma âncora: toque o coração e diga 'Eu sou capaz de mudança positiva.'" },
+      { tempo: 390, texto: "Essa transformação já começou. Confie no processo natural da sua mente." }
+    ],
+    encerramento: "Abra os olhos sabendo que plantou sementes de transformação positiva."
+  },
+  energia: {
+    intro: "Vamos ativar sua energia vital com respiração e movimento consciente.",
+    fases: [
+      { tempo: 30, texto: "Sente-se ereto, coluna alinhada. Respire profundamente pelo nariz." },
+      { tempo: 60, texto: "Inspire contando até 4, segure por 4, expire por 6. Sinta a energia circulando." },
+      { tempo: 120, texto: "Mova suavemente os ombros para cima e para baixo, liberando tensões." },
+      { tempo: 180, texto: "Imagine energia dourada subindo pela sua coluna a cada inspiração." },
+      { tempo: 240, texto: "Essa energia se espalha por todo seu corpo, vitalizando cada célula." },
+      { tempo: 300, texto: "Sorria suavemente. Sinta gratidão por essa vitalidade natural." }
+    ],
+    encerramento: "Abra os olhos sentindo-se energizado e pronto para o dia."
+  },
+  relax: {
+    intro: "Vamos liberar tensões com técnicas de relaxamento ativo.",
+    fases: [
+      { tempo: 30, texto: "Respire profundamente e sinta seu corpo se acomodando." },
+      { tempo: 60, texto: "Comece pelos pés. Tensione por 3 segundos, depois relaxe completamente." },
+      { tempo: 120, texto: "Agora as pernas. Tensione... e relaxe. Sinta a diferença." },
+      { tempo: 180, texto: "Continue pelo abdômen, peito, braços. Tensione e relaxe cada parte." },
+      { tempo: 240, texto: "Finalmente, o rosto e pescoço. Tensione... e relaxe profundamente." },
+      { tempo: 300, texto: "Sinta todo seu corpo relaxado, como se estivesse flutuando." },
+      { tempo: 360, texto: "Respire naturalmente, aproveitando essa sensação de paz total." }
+    ],
+    encerramento: "Abra os olhos lentamente, mantendo essa sensação de relaxamento."
+  }
+};
 
 function speak(text: string, lang = 'pt-BR', rate = 1) {
   const u = new SpeechSynthesisUtterance(text);
@@ -47,6 +156,10 @@ export default function Meditations() {
   const [tempoRestante, setTempoRestante] = useState(SESSOES[0].minutos * 60);
   const [ambienteAtivo, setAmbienteAtivo] = useState<Record<string, boolean>>({});
   const [volume, setVolume] = useState<Record<string, number>>({ chuva: 0.3, vento: 0.25 });
+  const [customAudio, setCustomAudio] = useState<Record<string, CustomAudio>>({});
+  const [audioConfigOpen, setAudioConfigOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState('');
+  const customAudioRef = useRef<HTMLAudioElement | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode; filter?: BiquadFilterNode }>>({});
   const timerRef = useRef<number | null>(null);
@@ -57,6 +170,20 @@ export default function Meditations() {
   }, [sessao]);
 
   useEffect(() => {
+    // Carregar configurações de áudio personalizadas salvas
+    const loadedCustomAudio: Record<string, CustomAudio> = {};
+    SESSOES.forEach(sessao => {
+      const saved = localStorage.getItem(`rz_custom_audio_${sessao.id}`);
+      if (saved) {
+        try {
+          loadedCustomAudio[sessao.id] = JSON.parse(saved);
+        } catch (e) {
+          console.error('Erro ao carregar áudio personalizado:', e);
+        }
+      }
+    });
+    setCustomAudio(loadedCustomAudio);
+
     return () => stop();
   }, []);
 
@@ -124,11 +251,123 @@ export default function Meditations() {
     if (n) n.gain.gain.value = value;
   };
 
+  const saveCustomAudio = (sessionId: string, audioConfig: CustomAudio) => {
+    setCustomAudio(prev => ({ ...prev, [sessionId]: audioConfig }));
+    localStorage.setItem(`rz_custom_audio_${sessionId}`, JSON.stringify(audioConfig));
+  };
+
+  const loadCustomAudio = (sessionId: string): CustomAudio => {
+    const saved = localStorage.getItem(`rz_custom_audio_${sessionId}`);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return { type: 'none', url: '', volume: 0.5 };
+  };
+
+  const playCustomAudio = (sessionId: string) => {
+    const audioConfig = customAudio[sessionId] || loadCustomAudio(sessionId);
+    if (audioConfig.type === 'none' || !audioConfig.url) return;
+
+    // Parar a sessão principal se estiver executando
+    if (executando) {
+      setExecutando(false);
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+
+    // Parar áudio padrão (speechSynthesis) instantaneamente
+    window.speechSynthesis.cancel();
+
+    // Parar todos os áudios ambientes quando áudio personalizado for reproduzido
+    Object.values(nodesRef.current).forEach((node) => {
+      try {
+        node.source.stop();
+        node.source.disconnect();
+        node.gain.disconnect();
+        if (node.filter) node.filter.disconnect();
+      } catch (e) {
+        // Ignorar erros se o nó já foi parado
+      }
+    });
+    nodesRef.current = {};
+    setAmbienteAtivo({});
+
+    // Parar áudio anterior se estiver tocando
+    if (customAudioRef.current) {
+      if (customAudioRef.current instanceof HTMLAudioElement) {
+        customAudioRef.current.pause();
+      } else if (customAudioRef.current instanceof HTMLIFrameElement) {
+        // Remover iframe do YouTube
+        document.body.removeChild(customAudioRef.current);
+      }
+      customAudioRef.current = null;
+    }
+
+    if (audioConfig.type === 'youtube') {
+      // Para YouTube, criar iframe invisível apenas para áudio
+      const videoId = extractYouTubeId(audioConfig.url);
+      if (videoId) {
+        // Criar iframe invisível para reproduzir apenas o áudio
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.style.position = 'absolute';
+        iframe.style.left = '-9999px';
+        iframe.allow = 'autoplay';
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&start=0&end=0`;
+        
+        // Adicionar ao DOM
+        document.body.appendChild(iframe);
+        
+        // Salvar referência para poder remover depois
+        customAudioRef.current = iframe as any;
+        
+        console.log('Reproduzindo áudio do YouTube em segundo plano');
+      }
+    } else if (audioConfig.type === 'mp3') {
+      // Para MP3, criar elemento audio
+      try {
+        const audio = new Audio(audioConfig.url);
+        audio.volume = audioConfig.volume;
+        audio.loop = true;
+        audio.crossOrigin = 'anonymous';
+        
+        audio.addEventListener('loadeddata', () => {
+          console.log('Áudio personalizado carregado com sucesso');
+        });
+        
+        audio.addEventListener('error', (e) => {
+          console.error('Erro ao carregar áudio personalizado:', e);
+          alert('Erro ao carregar o áudio. Verifique se a URL está correta e acessível.');
+        });
+        
+        customAudioRef.current = audio;
+        audio.play().catch(error => {
+          console.error('Erro ao reproduzir áudio:', error);
+          alert('Erro ao reproduzir o áudio. Tente novamente.');
+        });
+      } catch (error) {
+        console.error('Erro ao criar elemento de áudio:', error);
+        alert('Erro ao configurar o áudio personalizado.');
+      }
+    }
+  };
+
+  const extractYouTubeId = (url: string): string | null => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
   const start = () => {
     setExecutando(true);
     const sessaoAtual = SESSOES.find((x) => x.id === sessao)!;
     const minutos = sessaoAtual.minutos;
     setTempoRestante(minutos * 60);
+
+    // Reproduzir áudio personalizado se configurado
+    playCustomAudio(sessao);
 
     // Roteiro híbrido ou tradicional
     if (sessaoAtual.type === 'hybrid' && ROTEIROS_HIBRIDOS[sessao as keyof typeof ROTEIROS_HIBRIDOS]) {
@@ -177,6 +416,10 @@ export default function Meditations() {
     setExecutando(false);
     if (timerRef.current) window.clearInterval(timerRef.current);
     timerRef.current = null;
+    
+    // Parar áudio padrão (speechSynthesis) instantaneamente
+    window.speechSynthesis.cancel();
+    
     if (ctxRef.current) {
       Object.values(nodesRef.current).forEach((n) => {
         try { n.source.stop(); } catch {}
@@ -186,6 +429,107 @@ export default function Meditations() {
       });
       nodesRef.current = {};
     }
+
+    // Parar áudio personalizado
+    if (customAudioRef.current) {
+      if (customAudioRef.current instanceof HTMLAudioElement) {
+        customAudioRef.current.pause();
+      } else if (customAudioRef.current instanceof HTMLIFrameElement) {
+        // Remover iframe do YouTube
+        document.body.removeChild(customAudioRef.current);
+      }
+      customAudioRef.current = null;
+    }
+  };
+
+  const AudioConfigDialog = ({ sessionId }: { sessionId: string }) => {
+    const [audioType, setAudioType] = useState<'youtube' | 'mp3' | 'none'>('none');
+    const [audioUrl, setAudioUrl] = useState('');
+    const [audioVolume, setAudioVolume] = useState(0.5);
+
+    useEffect(() => {
+      const config = loadCustomAudio(sessionId);
+      setAudioType(config.type);
+      setAudioUrl(config.url);
+      setAudioVolume(config.volume);
+    }, [sessionId]);
+
+    const handleSave = () => {
+      saveCustomAudio(sessionId, {
+        type: audioType,
+        url: audioUrl,
+        volume: audioVolume
+      });
+      setAudioConfigOpen(false);
+    };
+
+    return (
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Configurar Áudio Personalizado</DialogTitle>
+          <DialogDescription>
+            Configure um áudio personalizado para esta sessão de meditação.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="audio-type">Tipo de Áudio</Label>
+            <Select value={audioType} onValueChange={(value: 'youtube' | 'mp3' | 'none') => setAudioType(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum (padrão)</SelectItem>
+                <SelectItem value="youtube">Link do YouTube</SelectItem>
+                <SelectItem value="mp3">Arquivo MP3 (URL)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {audioType !== 'none' && (
+            <>
+              <div>
+                 <Label htmlFor="audio-url">
+                   {audioType === 'youtube' ? 'URL do YouTube' : 'URL do MP3'}
+                 </Label>
+                 <Input
+                   id="audio-url"
+                   value={audioUrl}
+                   onChange={(e) => setAudioUrl(e.target.value)}
+                   placeholder={audioType === 'youtube' ? 'https://www.youtube.com/watch?v=...' : 'https://exemplo.com/audio.mp3'}
+                 />
+                 {audioType === 'youtube' && (
+                   <p className="text-xs text-muted-foreground mt-1">
+                     💡 <strong>Dica:</strong> O YouTube será reproduzido em segundo plano (apenas áudio). Para melhor experiência, use um link direto de MP3.
+                   </p>
+                 )}
+               </div>
+              
+              <div>
+                <Label>Volume: {Math.round(audioVolume * 100)}%</Label>
+                <Slider
+                  value={[audioVolume]}
+                  onValueChange={([value]) => setAudioVolume(value)}
+                  max={1}
+                  min={0}
+                  step={0.1}
+                  className="mt-2"
+                />
+              </div>
+            </>
+          )}
+          
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setAudioConfigOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave}>
+              Salvar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    );
   };
 
   return (
@@ -221,9 +565,27 @@ export default function Meditations() {
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <Icon className="h-5 w-5 text-primary" />
-                        <Badge variant={s.type === 'hybrid' ? 'default' : 'secondary'}>
-                          {s.type === 'hybrid' ? 'Híbrida' : 'Tradicional'}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={s.type === 'hybrid' ? 'default' : 'secondary'}>
+                            {s.type === 'hybrid' ? 'Híbrida' : 'Tradicional'}
+                          </Badge>
+                          <Dialog open={audioConfigOpen && selectedSession === s.id} onOpenChange={(open) => {
+                            setAudioConfigOpen(open);
+                            if (open) setSelectedSession(s.id);
+                          }}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant={customAudio[s.id]?.type !== 'none' && customAudio[s.id]?.url ? "default" : "ghost"} 
+                                size="sm" 
+                                className="h-8 w-8 p-0"
+                                title="Configurar áudio personalizado"
+                              >
+                                <Music className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <AudioConfigDialog sessionId={s.id} />
+                          </Dialog>
+                        </div>
                       </div>
                       <CardTitle className="text-lg">{s.label}</CardTitle>
                       <CardDescription>{s.description}</CardDescription>
@@ -272,145 +634,39 @@ export default function Meditations() {
           <TabsContent value="ambientes" className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               {AMBIENTS.map(({ key, label }) => (
-                <Card key={key}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{label}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                <Card key={key} className="p-4">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Button 
-                        variant={ambienteAtivo[key] ? 'default' : 'outline'} 
+                      <Label className="text-base font-medium">{label}</Label>
+                      <Button
+                        variant={ambienteAtivo[key] ? "default" : "outline"}
+                        size="sm"
                         onClick={() => toggleAmbient(key)}
-                        className="min-w-[100px]"
                       >
-                        {ambienteAtivo[key] ? 'Ativo' : 'Ativar'}
+                        {ambienteAtivo[key] ? 'Parar' : 'Reproduzir'}
                       </Button>
-                      {ambienteAtivo[key] && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      )}
                     </div>
-                    <div className="space-y-2">
-                      <Label>Volume: {Math.round((volume[key] ?? 0.25) * 100)}%</Label>
-                      <Slider 
-                        value={[volume[key] ?? 0.25]} 
-                        min={0} 
-                        max={1} 
-                        step={0.01} 
-                        onValueChange={(v) => setAmbientVolume(key, v[0])} 
-                      />
-                    </div>
-                  </CardContent>
+                    
+                    {ambienteAtivo[key] && (
+                      <div className="space-y-2">
+                        <Label className="text-sm">Volume: {Math.round((volume[key] ?? 0.25) * 100)}%</Label>
+                        <Slider
+                          value={[volume[key] ?? 0.25]}
+                          onValueChange={([value]) => setAmbientVolume(key, value)}
+                          max={1}
+                          min={0}
+                          step={0.05}
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </Card>
               ))}
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Dicas para Sons Ambientes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>• Use fones de ouvido para uma experiência mais imersiva</p>
-                  <p>• Ajuste o volume para que seja sutil, não dominante</p>
-                  <p>• Experimente diferentes combinações para encontrar sua preferência</p>
-                  <p>• Os sons podem ajudar a mascarar ruídos externos</p>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
     </div>
   );
 }
-
-// Expandindo as sessões com conteúdo híbrido
-const SESSOES = [
-  { 
-    id: 'foco', 
-    label: 'Foco Profundo', 
-    minutos: 5, 
-    icon: Focus,
-    description: 'Desenvolva concentração e clareza mental',
-    type: 'hybrid',
-    techniques: ['respiração', 'visualização', 'ancoragem']
-  },
-  { 
-    id: 'relax', 
-    label: 'Relaxamento Ativo', 
-    minutos: 7, 
-    icon: Heart,
-    description: 'Libere tensões e restaure energia',
-    type: 'hybrid',
-    techniques: ['body scan', 'respiração', 'sons ambientes']
-  },
-  { 
-    id: 'sono', 
-    label: 'Preparação para o Sono', 
-    minutos: 10, 
-    icon: Moon,
-    description: 'Acalme a mente para um sono reparador',
-    type: 'traditional',
-    techniques: ['respiração lenta', 'relaxamento progressivo']
-  },
-  {
-    id: 'reprogramacao',
-    label: 'Reprogramação Mental',
-    minutos: 8,
-    icon: Brain,
-    description: 'Transforme padrões mentais limitantes',
-    type: 'hybrid',
-    techniques: ['afirmações', 'visualização', 'ancoragem neural']
-  },
-  {
-    id: 'energia',
-    label: 'Ativação Energética',
-    minutos: 6,
-    icon: Zap,
-    description: 'Desperte vitalidade e motivação',
-    type: 'hybrid',
-    techniques: ['respiração energizante', 'movimento sutil', 'intenção']
-  }
-];
-
-// Roteiros híbridos expandidos
-const ROTEIROS_HIBRIDOS = {
-  foco: {
-    intro: "Vamos desenvolver seu foco com técnicas híbridas de concentração.",
-    fases: [
-      { tempo: 30, texto: "Feche os olhos e respire naturalmente. Sinta seu corpo se acomodando." },
-      { tempo: 60, texto: "Agora, imagine uma luz dourada no centro da sua testa. Essa é sua luz de foco." },
-      { tempo: 90, texto: "A cada inspiração, essa luz fica mais brilhante. A cada expiração, ela se expande." },
-      { tempo: 120, texto: "Quando pensamentos surgirem, simplesmente os observe e retorne à luz dourada." },
-      { tempo: 180, texto: "Sinta como essa luz representa sua capacidade natural de concentração." },
-      { tempo: 240, texto: "Agora, ancoremos esse estado. Pressione suavemente o polegar e indicador direitos." },
-      { tempo: 270, texto: "Essa é sua âncora de foco. Use-a sempre que precisar de concentração." }
-    ],
-    encerramento: "Lentamente, abra os olhos mantendo essa sensação de clareza e foco."
-  },
-  reprogramacao: {
-    intro: "Vamos reprogramar padrões mentais com técnicas de neuroplasticidade.",
-    fases: [
-      { tempo: 45, texto: "Respire profundamente e conecte-se com sua intenção de mudança." },
-      { tempo: 90, texto: "Identifique um padrão que você deseja transformar. Apenas observe, sem julgamento." },
-      { tempo: 150, texto: "Agora, visualize como você gostaria de ser. Veja-se agindo de forma nova e positiva." },
-      { tempo: 210, texto: "Repita mentalmente: 'Eu escolho pensamentos que me fortalecem e me elevam.'" },
-      { tempo: 270, texto: "Sinta essa nova versão de você se integrando em cada célula do seu corpo." },
-      { tempo: 330, texto: "Crie uma âncora: toque o coração e diga 'Eu sou capaz de mudança positiva.'" },
-      { tempo: 390, texto: "Essa transformação já começou. Confie no processo natural da sua mente." }
-    ],
-    encerramento: "Abra os olhos sabendo que plantou sementes de transformação positiva."
-  },
-  energia: {
-    intro: "Vamos ativar sua energia vital com respiração e movimento consciente.",
-    fases: [
-      { tempo: 30, texto: "Sente-se ereto, coluna alinhada. Respire profundamente pelo nariz." },
-      { tempo: 60, texto: "Inspire contando até 4, segure por 4, expire por 6. Sinta a energia circulando." },
-      { tempo: 120, texto: "Mova suavemente os ombros para cima e para baixo, liberando tensões." },
-      { tempo: 180, texto: "Imagine energia dourada subindo pela sua coluna a cada inspiração." },
-      { tempo: 240, texto: "Essa energia se espalha por todo seu corpo, vitalizando cada célula." },
-      { tempo: 300, texto: "Sorria suavemente. Sinta gratidão por essa vitalidade natural." }
-    ],
-    encerramento: "Abra os olhos sentindo-se energizado e pronto para o dia."
-  }
-};
