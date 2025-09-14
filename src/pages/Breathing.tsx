@@ -23,6 +23,15 @@ import { Slider } from "@/components/ui/slider";
  function updateStats(elapsedSec: number) {
   const total = Number(localStorage.getItem('rz_total_seconds') || '0') + elapsedSec;
   localStorage.setItem('rz_total_seconds', String(total));
+  
+  // Registrar sessão de respiração
+  const breathingSessions = Number(localStorage.getItem('rz_breathing_sessions') || '0') + 1;
+  localStorage.setItem('rz_breathing_sessions', String(breathingSessions));
+  
+  // Registrar sessão total
+  const totalSessions = Number(localStorage.getItem('rz_sessions_completed') || '0') + 1;
+  localStorage.setItem('rz_sessions_completed', String(totalSessions));
+  
   const lastDay = localStorage.getItem('rz_last_day');
   const today = new Date().toDateString();
   let streak = Number(localStorage.getItem('rz_streak') || '0');

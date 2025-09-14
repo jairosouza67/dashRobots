@@ -20,11 +20,7 @@ const Index = () => {
             <Link to="/respirar"><Button variant="hero" size="xl" className="hover-scale">Começar a Respirar</Button></Link>
             <Link to="/meditacoes"><Button variant="secondary" size="lg">Meditações</Button></Link>
           </div>
-          <ul className="grid sm:grid-cols-3 gap-3 pt-2">
-            <li className="rounded-lg border p-4 bg-secondary/40"><span className="block text-sm font-medium">Sessões curtas</span><span className="text-xs text-muted-foreground">1–5 min</span></li>
-            <li className="rounded-lg border p-4 bg-secondary/40"><span className="block text-sm font-medium">Sons ambientes</span><span className="text-xs text-muted-foreground">chuva, vento</span></li>
-            <li className="rounded-lg border p-4 bg-secondary/40"><span className="block text-sm font-medium">Estatísticas</span><span className="text-xs text-muted-foreground">streak e tempo</span></li>
-          </ul>
+
         </article>
         <aside className="relative">
           <img

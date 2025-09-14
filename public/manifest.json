@@ -5,12 +5,18 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "theme_color": "#22c55e",
   "orientation": "portrait",
   "scope": "/",
   "lang": "pt-BR",
   "categories": ["health", "lifestyle", "meditation"],
   "icons": [
+    {
+      "src": "/meditation-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",

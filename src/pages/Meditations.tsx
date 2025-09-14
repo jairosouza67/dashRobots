@@ -316,7 +316,7 @@ export default function Meditations() {
         iframe.style.position = 'absolute';
         iframe.style.left = '-9999px';
         iframe.allow = 'autoplay';
-        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&start=0&end=0`;
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&start=0&end=0&enablejsapi=1&origin=${window.location.origin}`;
         
         // Adicionar ao DOM
         document.body.appendChild(iframe);
@@ -396,23 +396,23 @@ export default function Meditations() {
     }
 
     timerRef.current = window.setInterval(() => {
-      if (!isPaused) {
-        setTempoRestante((t) => {
-          if (t <= 1) {
-            stop();
-            setIsPaused(false);
-            speak('Encerrando. Leve essa calma e clareza com você.');
-            updateStats(minutos);
-            // Atualizar estatísticas específicas
-            const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
-            localStorage.setItem('rz_meditation_sessions', String(meditationSessions));
-            const totalSessions = Number(localStorage.getItem('rz_sessions_completed') || '0') + 1;
-            localStorage.setItem('rz_sessions_completed', String(totalSessions));
-            return 0;
-          }
-          return t - 1;
-        });
-      }
+      setTempoRestante((t) => {
+        if (isPaused) return t; // Não decrementar quando pausado
+        
+        if (t <= 1) {
+          stop();
+          setIsPaused(false);
+          speak('Encerrando. Leve essa calma e clareza com você.');
+          updateStats(minutos);
+          // Atualizar estatísticas específicas
+          const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
+          localStorage.setItem('rz_meditation_sessions', String(meditationSessions));
+          const totalSessions = Number(localStorage.getItem('rz_sessions_completed') || '0') + 1;
+          localStorage.setItem('rz_sessions_completed', String(totalSessions));
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
   };
 
@@ -420,8 +420,14 @@ export default function Meditations() {
     if (customAudioRef.current) {
       if (customAudioRef.current instanceof HTMLAudioElement) {
         customAudioRef.current.pause();
+      } else if (customAudioRef.current instanceof HTMLIFrameElement) {
+        // Para YouTube, enviar comando de pause via postMessage
+        try {
+          customAudioRef.current.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        } catch (e) {
+          console.warn('Não foi possível pausar o vídeo do YouTube:', e);
+        }
       }
-      // Para YouTube, não há controle direto de pause, mas podemos silenciar
     }
   };
 
@@ -431,8 +437,14 @@ export default function Meditations() {
         customAudioRef.current.play().catch(error => {
           console.error('Erro ao retomar áudio:', error);
         });
+      } else if (customAudioRef.current instanceof HTMLIFrameElement) {
+        // Para YouTube, enviar comando de play via postMessage
+        try {
+          customAudioRef.current.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        } catch (e) {
+          console.warn('Não foi possível retomar o vídeo do YouTube:', e);
+        }
       }
-      // Para YouTube, não há controle direto de resume
     }
   };
 

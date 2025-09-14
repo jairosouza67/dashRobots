@@ -15,11 +15,17 @@ function formatTotal(totalSec: number) {
 export default function Stats() {
   const [streak, setStreak] = useState(0);
   const [total, setTotal] = useState(0);
+  const [breathingSessions, setBreathingSessions] = useState(0);
+  const [meditationSessions, setMeditationSessions] = useState(0);
+  const [totalSessions, setTotalSessions] = useState(0);
 
   useEffect(() => {
     const load = () => {
       setStreak(Number(localStorage.getItem('rz_streak') || '0'));
       setTotal(Number(localStorage.getItem('rz_total_seconds') || '0'));
+      setBreathingSessions(Number(localStorage.getItem('rz_breathing_sessions') || '0'));
+      setMeditationSessions(Number(localStorage.getItem('rz_meditation_sessions') || '0'));
+      setTotalSessions(Number(localStorage.getItem('rz_sessions_completed') || '0'));
     };
     load();
     const i = setInterval(load, 1000);
@@ -53,6 +59,32 @@ export default function Stats() {
             <CardContent>
               <div className="text-4xl font-bold">{formatTotal(total)}</div>
               <p className="text-sm text-muted-foreground">Somando respirações e meditações</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Sessões totais</CardTitle></CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">{totalSessions}</div>
+              <p className="text-sm text-muted-foreground">Respirações e meditações completas</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader><CardTitle>Sessões de respiração</CardTitle></CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">{breathingSessions}</div>
+              <p className="text-sm text-muted-foreground">Exercícios respiratórios completos</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>Sessões de meditação</CardTitle></CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">{meditationSessions}</div>
+              <p className="text-sm text-muted-foreground">Meditações completas</p>
             </CardContent>
           </Card>
 

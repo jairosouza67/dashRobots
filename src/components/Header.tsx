@@ -35,8 +35,8 @@ export const Header = () => {
           <nav className="flex items-center gap-1">
             <NavLink to="/respirar">Respirar</NavLink>
             <NavLink to="/meditacoes">Meditações</NavLink>
-            <NavLink to="/estatisticas">Estatísticas</NavLink>
             <NavLink to="/lembretes">Lembretes</NavLink>
+            <NavLink to="/estatisticas">Estatísticas</NavLink>
           </nav>
         )}
         
