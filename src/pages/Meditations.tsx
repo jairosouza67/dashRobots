@@ -155,12 +155,13 @@ export default function Meditations() {
   const [executando, setExecutando] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [tempoRestante, setTempoRestante] = useState(SESSOES[0].minutos * 60);
+  const [duracaoAudio, setDuracaoAudio] = useState<number | null>(null); // Duração do áudio em segundos
   const [ambienteAtivo, setAmbienteAtivo] = useState<Record<string, boolean>>({});
   const [volume, setVolume] = useState<Record<string, number>>({ chuva: 0.3, vento: 0.25 });
   const [customAudio, setCustomAudio] = useState<Record<string, CustomAudio>>({});
   const [audioConfigOpen, setAudioConfigOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState('');
-  const customAudioRef = useRef<HTMLAudioElement | null>(null);
+  const customAudioRef = useRef<HTMLAudioElement | HTMLIFrameElement | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode; filter?: BiquadFilterNode }>>({});
   const timerRef = useRef<number | null>(null);
@@ -168,7 +169,16 @@ export default function Meditations() {
   useEffect(() => {
     const s = SESSOES.find((x) => x.id === sessao)!;
     setTempoRestante(s.minutos * 60);
+    setDuracaoAudio(null); // Reset da duração quando trocar de sessão
   }, [sessao]);
+
+  // Efeito para atualizar o tempo quando a duração do áudio for detectada
+  useEffect(() => {
+    if (duracaoAudio && executando && !isPaused) {
+      console.log(`Ajustando cronômetro para duração do áudio: ${duracaoAudio} segundos`);
+      setTempoRestante(duracaoAudio);
+    }
+  }, [duracaoAudio, executando, isPaused]);
 
   useEffect(() => {
     // Carregar configurações de áudio personalizadas salvas
@@ -185,7 +195,26 @@ export default function Meditations() {
     });
     setCustomAudio(loadedCustomAudio);
 
-    return () => stop();
+    // Listener para mensagens do YouTube
+    const handleYouTubeMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === 'video-progress') {
+          console.log('YouTube player update:', data);
+        }
+      } catch (e) {
+        // Ignorar mensagens que não são JSON
+      }
+    };
+
+    window.addEventListener('message', handleYouTubeMessage);
+
+    return () => {
+      stop();
+      window.removeEventListener('message', handleYouTubeMessage);
+    };
   }, []);
 
   const createNoiseBuffer = (duration = 2) => {
@@ -278,8 +307,8 @@ export default function Meditations() {
       }
     }
 
-    // Parar áudio padrão (speechSynthesis) instantaneamente
-    window.speechSynthesis.cancel();
+    // Removido: Parar áudio padrão (speechSynthesis) - não usado mais
+    // window.speechSynthesis.cancel();
 
     // Parar todos os áudios ambientes quando áudio personalizado for reproduzido
     Object.values(nodesRef.current).forEach((node) => {
@@ -301,30 +330,78 @@ export default function Meditations() {
         customAudioRef.current.pause();
       } else if (customAudioRef.current instanceof HTMLIFrameElement) {
         // Remover iframe do YouTube
-        document.body.removeChild(customAudioRef.current);
+        try {
+          document.body.removeChild(customAudioRef.current);
+        } catch (e) {
+          console.warn('Erro ao remover iframe anterior:', e);
+        }
       }
       customAudioRef.current = null;
     }
 
     if (audioConfig.type === 'youtube') {
-      // Para YouTube, criar iframe invisível apenas para áudio
+      // Para YouTube, extrair apenas o áudio usando iframe invisível otimizado
       const videoId = extractYouTubeId(audioConfig.url);
       if (videoId) {
-        // Criar iframe invisível para reproduzir apenas o áudio
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.style.position = 'absolute';
-        iframe.style.left = '-9999px';
-        iframe.allow = 'autoplay';
-        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&start=0&end=0&enablejsapi=1&origin=${window.location.origin}`;
-        
-        // Adicionar ao DOM
-        document.body.appendChild(iframe);
-        
-        // Salvar referência para poder remover depois
-        customAudioRef.current = iframe as any;
-        
-        console.log('Reproduzindo áudio do YouTube em segundo plano');
+        try {
+          // Criar iframe invisível com configurações específicas para áudio
+          const iframe = document.createElement('iframe');
+          iframe.style.position = 'absolute';
+          iframe.style.left = '-9999px';
+          iframe.style.top = '-9999px';
+          iframe.style.width = '1px';
+          iframe.style.height = '1px';
+          iframe.style.opacity = '0';
+          iframe.style.visibility = 'hidden';
+          iframe.style.pointerEvents = 'none';
+          iframe.allow = 'autoplay; encrypted-media';
+          iframe.setAttribute('allowfullscreen', 'false');
+          
+          // URL otimizada para reprodução de áudio apenas
+          const youtubeUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&disablekb=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&start=0`;
+          
+          iframe.src = youtubeUrl;
+          
+          // Adicionar listener para detectar duração do YouTube
+          const handleYouTubeMessage = (event: MessageEvent) => {
+            if (event.origin !== 'https://www.youtube.com') return;
+            try {
+              const data = JSON.parse(event.data);
+              if (data.event === 'video-progress' && data.info && data.info.duration) {
+                const duration = Math.round(data.info.duration);
+                console.log('Duração do YouTube detectada:', duration, 'segundos');
+                setDuracaoAudio(duration);
+              }
+            } catch (e) {
+              // Ignorar mensagens que não são JSON válido
+            }
+          };
+          
+          window.addEventListener('message', handleYouTubeMessage);
+          
+          // Limpar listener após 10 segundos (fallback)
+          setTimeout(() => {
+            window.removeEventListener('message', handleYouTubeMessage);
+            // Se não conseguiu detectar a duração, usar tempo padrão da sessão
+            if (!duracaoAudio) {
+              console.log('Não foi possível detectar duração do YouTube, usando tempo padrão');
+            }
+          }, 10000);
+          
+          // Adicionar ao DOM como elemento invisível
+          document.body.appendChild(iframe);
+          
+          // Salvar referência
+          customAudioRef.current = iframe;
+          
+          console.log('YouTube áudio invisível configurado');
+          
+        } catch (error) {
+          console.error('Erro ao configurar áudio do YouTube:', error);
+          alert('Erro ao configurar o áudio do YouTube. Considerações: 1) Alguns vídeos têm restrições de reprodução. 2) Use um arquivo MP3 direto para controle total.');
+        }
+      } else {
+        alert('URL do YouTube inválida. Formatos aceitos: youtube.com/watch?v=ID ou youtu.be/ID');
       }
     } else if (audioConfig.type === 'mp3') {
       // Para MP3, criar elemento audio
@@ -334,8 +411,15 @@ export default function Meditations() {
         audio.loop = true;
         audio.crossOrigin = 'anonymous';
         
-        audio.addEventListener('loadeddata', () => {
-          console.log('Áudio personalizado carregado com sucesso');
+        audio.addEventListener('loadedmetadata', () => {
+          console.log('Áudio MP3 carregado com sucesso');
+          if (audio.duration && isFinite(audio.duration)) {
+            const duration = Math.round(audio.duration);
+            console.log('Duração do MP3 detectada:', duration, 'segundos');
+            setDuracaoAudio(duration);
+          } else {
+            console.log('Duração do MP3 não disponível ou infinita (stream)');
+          }
         });
         
         audio.addEventListener('error', (e) => {
@@ -344,10 +428,21 @@ export default function Meditations() {
         });
         
         customAudioRef.current = audio;
-        audio.play().catch(error => {
-          console.error('Erro ao reproduzir áudio:', error);
-          alert('Erro ao reproduzir o áudio. Tente novamente.');
+        
+        // Tentar reproduzir com interação do usuário
+        const playAudio = () => {
+          audio.play().catch(error => {
+            console.error('Erro ao reproduzir áudio:', error);
+            alert('Erro ao reproduzir o áudio. Clique na página e tente novamente.');
+          });
+        };
+        
+        // Se não conseguir reproduzir automaticamente, pedir interação do usuário
+        audio.play().catch(() => {
+          alert('Para reproduzir o áudio, clique em "OK" e depois clique na página.');
+          document.addEventListener('click', playAudio, { once: true });
         });
+        
       } catch (error) {
         console.error('Erro ao criar elemento de áudio:', error);
         alert('Erro ao configurar o áudio personalizado.');
@@ -356,53 +451,54 @@ export default function Meditations() {
   };
 
   const extractYouTubeId = (url: string): string | null => {
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
+    // Padrões mais robustos para diferentes formatos de URL do YouTube
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/watch\?.*&v=)([a-zA-Z0-9_-]{11})/,
+      /^([a-zA-Z0-9_-]{11})$/ // ID direto
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+    
+    console.error('URL do YouTube não reconhecida:', url);
+    return null;
   };
 
   const start = () => {
     setExecutando(true);
     const sessaoAtual = SESSOES.find((x) => x.id === sessao)!;
     const minutos = sessaoAtual.minutos;
-    setTempoRestante(minutos * 60);
-
+    
+    // Reset da duração do áudio para detectar novamente
+    setDuracaoAudio(null);
+    
     // Reproduzir áudio personalizado se configurado
     playCustomAudio(sessao);
+    
+    // Aguardar um pouco para detectar a duração do áudio
+    setTimeout(() => {
+      const tempoFinal = duracaoAudio || (minutos * 60); // Usar duração do áudio ou tempo padrão
+      setTempoRestante(tempoFinal);
+      
+      console.log(`Sessão iniciada com duração: ${tempoFinal} segundos ${duracaoAudio ? '(baseada no áudio)' : '(tempo padrão)'}`);
+    }, 3000); // 3 segundos para detectar duração
+    
+    // Usar tempo padrão inicialmente
+    setTempoRestante(minutos * 60);
 
-    // Roteiro híbrido ou tradicional
-    if (sessaoAtual.type === 'hybrid' && ROTEIROS_HIBRIDOS[sessao as keyof typeof ROTEIROS_HIBRIDOS]) {
-      const roteiro = ROTEIROS_HIBRIDOS[sessao as keyof typeof ROTEIROS_HIBRIDOS];
-      
-      // Introdução
-      speak(roteiro.intro);
-      
-      // Fases programadas
-      roteiro.fases.forEach((fase) => {
-        setTimeout(() => {
-          if (executando && !isPaused) speak(fase.texto);
-        }, fase.tempo * 1000);
-      });
-      
-      // Encerramento programado
-      setTimeout(() => {
-        if (executando && !isPaused) speak(roteiro.encerramento);
-      }, (minutos * 60 - 10) * 1000);
-    } else {
-      // Roteiro tradicional simples
-      speak('Encontre uma postura confortável. Vamos começar sua meditação.');
-      setTimeout(() => speak('Inspire pelo nariz... solte devagar pela boca.'), 2000);
-      setTimeout(() => speak('Observe o ar entrando e saindo. Se pensamentos surgirem, apenas deixe passar.'), 10000);
-    }
+    // Remover toda a síntese de voz - apenas áudio personalizado
+    // (Removido: roteiros híbridos e tradicionais com speak())
 
     timerRef.current = window.setInterval(() => {
       setTempoRestante((t) => {
-        if (isPaused) return t; // Não decrementar quando pausado
-        
         if (t <= 1) {
           stop();
           setIsPaused(false);
-          speak('Encerrando. Leve essa calma e clareza com você.');
+          // Remover fala de encerramento - silencioso
           updateStats(minutos);
           // Atualizar estatísticas específicas
           const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
@@ -421,9 +517,11 @@ export default function Meditations() {
       if (customAudioRef.current instanceof HTMLAudioElement) {
         customAudioRef.current.pause();
       } else if (customAudioRef.current instanceof HTMLIFrameElement) {
-        // Para YouTube, enviar comando de pause via postMessage
+        // Para YouTube iframe, enviar comando de pause via postMessage
         try {
-          customAudioRef.current.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+          const iframe = customAudioRef.current;
+          iframe.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+          console.log('Comando de pause enviado para YouTube iframe');
         } catch (e) {
           console.warn('Não foi possível pausar o vídeo do YouTube:', e);
         }
@@ -438,9 +536,11 @@ export default function Meditations() {
           console.error('Erro ao retomar áudio:', error);
         });
       } else if (customAudioRef.current instanceof HTMLIFrameElement) {
-        // Para YouTube, enviar comando de play via postMessage
+        // Para YouTube iframe, enviar comando de play via postMessage
         try {
-          customAudioRef.current.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+          const iframe = customAudioRef.current;
+          iframe.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+          console.log('Comando de play enviado para YouTube iframe');
         } catch (e) {
           console.warn('Não foi possível retomar o vídeo do YouTube:', e);
         }
@@ -454,12 +554,38 @@ export default function Meditations() {
       // Manter executando como true quando retomar
       setExecutando(true);
       resumeCustomAudio();
-      window.speechSynthesis.resume();
+      // Removido: window.speechSynthesis.resume();
+      
+      // Retomar o timer
+      if (!timerRef.current) {
+        timerRef.current = window.setInterval(() => {
+          setTempoRestante((t) => {
+            if (t <= 1) {
+              stop();
+              setIsPaused(false);
+              // Removido: speak('Encerrando. Leve essa calma e clareza com você.');
+              const sessaoAtual = SESSOES.find((x) => x.id === sessao)!;
+              updateStats(sessaoAtual.minutos);
+              // Atualizar estatísticas específicas
+              const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
+              localStorage.setItem('rz_meditation_sessions', String(meditationSessions));
+              const totalSessions = Number(localStorage.getItem('rz_sessions_completed') || '0') + 1;
+              localStorage.setItem('rz_sessions_completed', String(totalSessions));
+              return 0;
+            }
+            return t - 1;
+          });
+        }, 1000);
+      }
     } else {
       setIsPaused(true);
-      // Manter executando como true mesmo quando pausado
+      // Pausar o timer
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
       pauseCustomAudio();
-      window.speechSynthesis.pause();
+      // Removido: window.speechSynthesis.pause();
     }
   };
 
@@ -469,8 +595,8 @@ export default function Meditations() {
     if (timerRef.current) window.clearInterval(timerRef.current);
     timerRef.current = null;
     
-    // Parar áudio padrão (speechSynthesis) instantaneamente
-    window.speechSynthesis.cancel();
+    // Removido: Parar áudio padrão (speechSynthesis) - não usado mais
+    // window.speechSynthesis.cancel();
     
     if (ctxRef.current) {
       Object.values(nodesRef.current).forEach((n) => {
@@ -488,7 +614,11 @@ export default function Meditations() {
         customAudioRef.current.pause();
       } else if (customAudioRef.current instanceof HTMLIFrameElement) {
         // Remover iframe do YouTube
-        document.body.removeChild(customAudioRef.current);
+        try {
+          document.body.removeChild(customAudioRef.current);
+        } catch (e) {
+          console.warn('Erro ao remover iframe:', e);
+        }
       }
       customAudioRef.current = null;
     }
@@ -551,9 +681,12 @@ export default function Meditations() {
                    placeholder={audioType === 'youtube' ? 'https://www.youtube.com/watch?v=...' : 'https://exemplo.com/audio.mp3'}
                  />
                  {audioType === 'youtube' && (
-                   <p className="text-xs text-muted-foreground mt-1">
-                     💡 <strong>Dica:</strong> O YouTube será reproduzido em segundo plano (apenas áudio). Para melhor experiência, use um link direto de MP3.
-                   </p>
+                   <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                     <p>🎵 <strong>Áudio apenas:</strong> O vídeo será reproduzido de forma invisível</p>
+                     <p>⚠️ <strong>Limitação:</strong> Alguns vídeos podem ter restrições de reprodução</p>
+                     <p>💡 <strong>Dica:</strong> Para controle total de volume, use um arquivo MP3 direto</p>
+                     <p>� <strong>Formatos aceitos:</strong> youtube.com/watch?v=ID ou youtu.be/ID</p>
+                   </div>
                  )}
                </div>
               
@@ -663,6 +796,11 @@ export default function Meditations() {
                               </div>
                               <div className="text-xs text-blue-700 dark:text-blue-300">
                                 {isPaused ? 'Pausado' : 'Tempo restante'}
+                                {duracaoAudio && (
+                                  <span className="ml-1 text-green-600 dark:text-green-400">
+                                    📱 Auto
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
