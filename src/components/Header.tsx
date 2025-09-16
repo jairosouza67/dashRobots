@@ -6,7 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { AuthButton } from "@/components/auth/AuthButton";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { User } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 
 const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => {
   const { pathname } = useLocation();
@@ -27,7 +27,15 @@ const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) =>
 export const Header = () => {
   const isMobile = useIsMobile();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
 
   return (
     <>
@@ -50,7 +58,33 @@ export const Header = () => {
           
           <div className="flex items-center gap-2">
             {user ? (
-              <AuthButton onOpenAuth={() => setIsAuthModalOpen(true)} />
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                  {userProfile?.photoURL ? (
+                    <img 
+                      src={userProfile.photoURL} 
+                      alt="Avatar" 
+                      className="w-8 h-8 rounded-full border-2 border-primary/20"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="w-4 h-4 text-primary" />
+                    </div>
+                  )}
+                  <span className="text-gray-700 hidden sm:block font-medium">
+                    {userProfile?.displayName || user.email?.split('@')[0] || 'Usuário'}
+                  </span>
+                </div>
+                <Button
+                  onClick={handleSignOut}
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Sair</span>
+                </Button>
+              </div>
             ) : (
               <Button 
                 onClick={() => setIsAuthModalOpen(true)}
