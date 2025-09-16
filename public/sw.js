@@ -1,8 +1,8 @@
 const CACHE_NAME = 'respirazen-v1';
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
+  '/assets/index-BvE_2X6e.js',
+  '/assets/index-BgIIaCNv.css',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'

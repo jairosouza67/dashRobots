@@ -14,10 +14,10 @@
   force = false
 
 # Redirect root to emergency page temporarily
-[[redirects]]
-  from = "/"
-  to = "/emergency.html"
-  status = 302
+# [[redirects]]
+#   from = "/"
+#   to = "/emergency.html"
+#   status = 302
 
 # Security Headers
 [[headers]]
