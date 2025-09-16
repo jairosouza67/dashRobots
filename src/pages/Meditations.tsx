@@ -27,13 +27,24 @@ const AMBIENTS: Ambient[] = [
   { key: 'vento', label: 'Vento calmo' },
 ];
 
-// URLs padrão do YouTube para cada sessão (substitua pelos seus áudios)
+// URLs padrão do Google Drive para cada sessão
+// Nota: Se os áudios do Google Drive não funcionarem devido a CORS,
+// o usuário pode configurar suas próprias URLs nas configurações
 const DEFAULT_YOUTUBE_AUDIOS: Record<string, string> = {
-  foco: 'https://www.youtube.com/watch?v=jfKfPfyJRdk', // Música de foco e concentração
-  relax: 'https://www.youtube.com/watch?v=fmBRuuQ0Gs8&t=1s', // Meditação Guiada - 5 MINUTOS
-  sono: 'https://www.youtube.com/watch?v=YQIqgxeNtl0', // Música para dormir
-  reprogramacao: 'https://www.youtube.com/watch?v=ZToicYcHIOU', // Música para meditação
-  energia: 'https://www.youtube.com/watch?v=lFcSrYw-ARY' // Música energizante
+  foco: 'https://drive.google.com/uc?id=1shhM86u4zY_3NKjWBO5F55CjL-JgyMbI', // Foco Profundo
+  relax: 'https://drive.google.com/uc?id=1HY_TPR6iySNnJB6wlB-5TkAQe26uI3Tc', // Relaxamento Ativo
+  sono: 'https://drive.google.com/uc?id=17GTaf3w-Dt0ZMIg2NGHRAeh1O8MHa3r8', // Preparação para o Sono
+  reprogramacao: 'https://drive.google.com/uc?id=1QZ75uP6gSBoXIEXkbVAKmMi4DBoJhEGR', // Reprogramação Mental
+  energia: 'https://drive.google.com/uc?id=1ixf9GP7yesq__ejl_WHeTsTAYzzTi-w6' // Energia Vital
+};
+
+// URLs alternativas caso o Google Drive falhe (podem ser configuradas pelo usuário)
+const FALLBACK_AUDIOS: Record<string, string> = {
+  foco: '/test-audio.mp3', // Áudio local de teste
+  relax: '/test-audio.mp3',
+  sono: '/test-audio.mp3',
+  reprogramacao: '/test-audio.mp3',
+  energia: '/test-audio.mp3'
 };
 
 const SESSOES = [
@@ -138,17 +149,11 @@ const ROTEIROS_HIBRIDOS = {
   }
 };
 
-// Função para extrair ID do YouTube
-function extractYouTubeId(url: string): string | null {
-  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-  return match ? match[1] : null;
-}
-
-// Função modificada para usar áudio do YouTube como padrão
+// Função modificada para usar áudio do Google Drive como padrão
 function speak(text: string, sessionId?: string, lang = 'pt-BR', rate = 1, customAudioRef?: React.MutableRefObject<HTMLAudioElement | HTMLIFrameElement | null>) {
-  // Se há uma sessão específica e URL do YouTube configurada, usar áudio do YouTube
+  // Se há uma sessão específica e URL do Google Drive configurada, usar áudio do Google Drive
   if (sessionId && DEFAULT_YOUTUBE_AUDIOS[sessionId]) {
-    playDefaultYouTubeAudio(sessionId, customAudioRef);
+    playDefaultAudio(sessionId, customAudioRef);
     return;
   }
   
@@ -159,41 +164,131 @@ function speak(text: string, sessionId?: string, lang = 'pt-BR', rate = 1, custo
   window.speechSynthesis.speak(u);
 }
 
-// Função para reproduzir áudio padrão do YouTube
-function playDefaultYouTubeAudio(sessionId: string, customAudioRef?: React.MutableRefObject<HTMLAudioElement | HTMLIFrameElement | null>) {
-  const youtubeUrl = DEFAULT_YOUTUBE_AUDIOS[sessionId];
-  if (!youtubeUrl) return;
+// Função para reproduzir áudio padrão do Google Drive
+function playDefaultAudio(sessionId: string, customAudioRef?: React.MutableRefObject<HTMLAudioElement | HTMLIFrameElement | null>) {
+  console.log(`🎵 INICIANDO playDefaultAudio para sessão: ${sessionId}`);
   
-  const videoId = extractYouTubeId(youtubeUrl);
-  if (!videoId) {
-    console.warn(`URL do YouTube inválida para sessão ${sessionId}:`, youtubeUrl);
+  const audioUrl = DEFAULT_YOUTUBE_AUDIOS[sessionId];
+  if (!audioUrl) {
+    console.warn(`❌ Nenhum áudio encontrado para a sessão: ${sessionId}`);
     return;
   }
   
-  // Remover iframe anterior se existir
-  const existingIframe = document.getElementById(`youtube-audio-${sessionId}`);
-  if (existingIframe) {
-    existingIframe.remove();
+  console.log(`🔗 URL do áudio: ${audioUrl}`);
+  
+  // Parar áudio anterior se existir
+  if (customAudioRef?.current) {
+    console.log(`⏹️ Parando áudio anterior...`);
+    if (customAudioRef.current instanceof HTMLAudioElement) {
+      customAudioRef.current.pause();
+      customAudioRef.current.currentTime = 0;
+    } else if (customAudioRef.current instanceof HTMLIFrameElement) {
+      customAudioRef.current.remove();
+    }
   }
   
-  // Criar iframe invisível para reproduzir apenas o áudio
-  const iframe = document.createElement('iframe');
-  iframe.id = `youtube-audio-${sessionId}`;
-  iframe.style.display = 'none';
-  iframe.style.position = 'absolute';
-  iframe.style.left = '-9999px';
-  iframe.allow = 'autoplay';
-  iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+  // Tentar primeiro com elemento audio direto
+  console.log(`🎧 Criando elemento Audio...`);
+  const audio = new Audio();
+  audio.volume = 0.7;
+  audio.loop = true;
+  audio.preload = 'auto';
   
-  // Adicionar ao DOM
-  document.body.appendChild(iframe);
+  let audioLoaded = false;
   
-  // Armazenar referência no customAudioRef se fornecido
-  if (customAudioRef) {
-    customAudioRef.current = iframe as any;
+  // Configurar eventos
+  audio.addEventListener('loadedmetadata', () => {
+    console.log(`✅ Áudio carregado para sessão ${sessionId}, duração: ${audio.duration} segundos`);
+    audioLoaded = true;
+  });
+  
+  audio.addEventListener('canplay', () => {
+    console.log(`🎵 Áudio pronto para reprodução (canplay)`);
+  });
+  
+  audio.addEventListener('loadstart', () => {
+    console.log(`⏳ Iniciando carregamento do áudio...`);
+  });
+  
+  audio.addEventListener('error', (e) => {
+    console.error(`❌ Erro ao carregar áudio direto para sessão ${sessionId}:`, e);
+    console.warn(`🔄 Tentando iframe como fallback...`);
+    
+    // Fallback: usar iframe para contornar CORS
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    iframe.allow = 'autoplay';
+    
+    // Criar HTML para o iframe com player de áudio
+    const iframeContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { margin: 0; padding: 0; background: transparent; }
+          audio { width: 100%; }
+        </style>
+      </head>
+      <body>
+        <audio id="player" controls autoplay loop style="opacity: 0; pointer-events: none;">
+          <source src="${audioUrl}" type="audio/mpeg">
+          Seu navegador não suporta o elemento de áudio.
+        </audio>
+        <script>
+          const audio = document.getElementById('player');
+          audio.volume = 0.7;
+          audio.play().catch(e => console.log('Erro no iframe:', e));
+          
+          // Comunicar com a janela pai
+          window.parent.postMessage({ type: 'audio-loaded', sessionId: '${sessionId}' }, '*');
+        </script>
+      </body>
+      </html>
+    `;
+    
+    iframe.srcdoc = iframeContent;
+    document.body.appendChild(iframe);
+    
+    // Armazenar referência do iframe
+    if (customAudioRef) {
+      customAudioRef.current = iframe;
+    }
+    
+    console.log(`Usando iframe para reproduzir áudio da sessão: ${sessionId}`);
+  });
+  
+  // Definir o src e tentar reproduzir
+  console.log(`🔗 Definindo src do áudio: ${audioUrl}`);
+  audio.src = audioUrl;
+  
+  console.log(`▶️ Tentando reproduzir áudio...`);
+  const playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        console.log(`✅ Reprodução direta iniciada com sucesso para sessão: ${sessionId}`);
+        if (customAudioRef) {
+          customAudioRef.current = audio;
+        }
+      })
+      .catch(error => {
+        console.error(`❌ Erro na reprodução direta:`, error);
+        console.warn(`🔄 O iframe será usado como fallback`);
+      });
   }
   
-  console.log(`Reproduzindo áudio padrão do YouTube para sessão: ${sessionId}`);
+  // Timeout para verificar se o áudio carregou
+  setTimeout(() => {
+    if (!audioLoaded && customAudioRef?.current instanceof HTMLAudioElement) {
+      console.log(`⏰ Timeout: Áudio direto não carregou em 3s, forçando fallback para iframe...`);
+      audio.dispatchEvent(new Event('error'));
+    }
+  }, 3000);
+  
+  console.log(`🎯 Configuração do áudio do Google Drive concluída para sessão: ${sessionId}`);
 }
 
 function updateStats(minutos: number) {
@@ -221,6 +316,7 @@ export default function Meditations() {
   const [customAudio, setCustomAudio] = useState<Record<string, CustomAudio>>({});
   const [audioConfigOpen, setAudioConfigOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState('');
+  const [audioContextInitialized, setAudioContextInitialized] = useState(false);
   const customAudioRef = useRef<HTMLAudioElement | HTMLIFrameElement | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode; filter?: BiquadFilterNode }>>({});
@@ -287,7 +383,17 @@ export default function Meditations() {
     return buffer;
   };
 
+  const initializeAudioContext = () => {
+    if (!audioContextInitialized) {
+      setAudioContextInitialized(true);
+      if (!ctxRef.current) {
+        ctxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+    }
+  };
+
   const toggleAmbient = (key: string) => {
+    initializeAudioContext();
     if (!ctxRef.current) ctxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     const ctx = ctxRef.current;
     const existing = nodesRef.current[key];
@@ -351,12 +457,24 @@ export default function Meditations() {
     if (saved) {
       return JSON.parse(saved);
     }
+    
+    // Se não há configuração salva, usar áudio padrão do Google Drive se disponível
+    const defaultUrl = DEFAULT_YOUTUBE_AUDIOS[sessionId];
+    if (defaultUrl) {
+      console.log(`🎵 Usando áudio padrão do Google Drive para ${sessionId}: ${defaultUrl}`);
+      return { type: 'mp3', url: defaultUrl, volume: 0.5 };
+    }
+    
     return { type: 'none', url: '', volume: 0.5 };
   };
 
   const playCustomAudio = (sessionId: string) => {
     const audioConfig = customAudio[sessionId] || loadCustomAudio(sessionId);
-    if (audioConfig.type === 'none' || !audioConfig.url) return;
+    console.log(`🎵 playCustomAudio chamado para ${sessionId}:`, audioConfig);
+    if (audioConfig.type === 'none' || !audioConfig.url) {
+      console.log(`❌ Nenhum áudio configurado para ${sessionId}`);
+      return;
+    }
 
     // Parar a sessão principal se estiver executando
     if (executando) {
@@ -471,35 +589,85 @@ export default function Meditations() {
         audio.loop = true;
         audio.crossOrigin = 'anonymous';
         
+        console.log(`🎵 Criando elemento audio para MP3: ${audioConfig.url}`);
+        
+        audio.addEventListener('loadstart', () => {
+          console.log(`🎵 Iniciando carregamento do MP3`);
+        });
+        
         audio.addEventListener('loadedmetadata', () => {
-          console.log('Áudio MP3 carregado com sucesso');
+          console.log(`✅ Áudio MP3 carregado com sucesso`);
           if (audio.duration && isFinite(audio.duration)) {
             const duration = Math.round(audio.duration);
-            console.log('Duração do MP3 detectada:', duration, 'segundos');
+            console.log(`⏱️ Duração do MP3 detectada: ${duration} segundos`);
             setDuracaoAudio(duration);
           } else {
-            console.log('Duração do MP3 não disponível ou infinita (stream)');
+            console.log(`⚠️ Duração do MP3 não disponível ou infinita (stream)`);
           }
         });
         
+        audio.addEventListener('canplay', () => {
+          console.log(`🎵 MP3 pronto para reprodução (canplay)`);
+        });
+        
         audio.addEventListener('error', (e) => {
-          console.error('Erro ao carregar áudio personalizado:', e);
-          alert('Erro ao carregar o áudio. Verifique se a URL está correta e acessível.');
+          console.error(`❌ Erro ao carregar áudio MP3:`, e);
+          console.error(`❌ URL que falhou: ${audioConfig.url}`);
+          
+          // Tentar fallback se a URL original falhou e é do Google Drive
+          if (audioConfig.url.includes('drive.google.com') && sessionId && FALLBACK_AUDIOS[sessionId]) {
+            console.log(`🔄 Tentando fallback para ${sessionId}: ${FALLBACK_AUDIOS[sessionId]}`);
+            
+            // Criar novo elemento audio com URL de fallback
+            const fallbackAudio = new Audio(FALLBACK_AUDIOS[sessionId]);
+            fallbackAudio.volume = audioConfig.volume;
+            fallbackAudio.loop = true;
+            
+            fallbackAudio.addEventListener('loadedmetadata', () => {
+              console.log(`✅ Fallback MP3 carregado com sucesso`);
+              if (fallbackAudio.duration && isFinite(fallbackAudio.duration)) {
+                const duration = Math.round(fallbackAudio.duration);
+                console.log(`⏱️ Duração do fallback MP3: ${duration} segundos`);
+                setDuracaoAudio(duration);
+              }
+            });
+            
+            fallbackAudio.addEventListener('error', (fallbackError) => {
+              console.error(`❌ Fallback também falhou:`, fallbackError);
+            });
+            
+            customAudioRef.current = fallbackAudio;
+            
+            // Tentar reproduzir o fallback
+            fallbackAudio.play().then(() => {
+              console.log(`✅ Fallback reproduzindo com sucesso!`);
+            }).catch((error) => {
+              console.log(`⚠️ Fallback bloqueado, aguardando interação:`, error);
+              document.addEventListener('click', () => {
+                fallbackAudio.play().catch(err => console.error('Erro no fallback:', err));
+              }, { once: true });
+            });
+          }
         });
         
         customAudioRef.current = audio;
         
         // Tentar reproduzir com interação do usuário
         const playAudio = () => {
-          audio.play().catch(error => {
-            console.error('Erro ao reproduzir áudio:', error);
-            alert('Erro ao reproduzir o áudio. Clique na página e tente novamente.');
+          console.log(`🎵 Tentando reproduzir MP3...`);
+          audio.play().then(() => {
+            console.log(`✅ MP3 reproduzindo com sucesso!`);
+          }).catch(error => {
+            console.error(`❌ Erro ao reproduzir áudio MP3:`, error);
           });
         };
         
-        // Se não conseguir reproduzir automaticamente, pedir interação do usuário
-        audio.play().catch(() => {
-          alert('Para reproduzir o áudio, clique em "OK" e depois clique na página.');
+        // Tentar reproduzir automaticamente
+        console.log(`🎵 Tentando reprodução automática do MP3...`);
+        audio.play().then(() => {
+          console.log(`✅ Reprodução automática do MP3 bem-sucedida!`);
+        }).catch((error) => {
+          console.log(`⚠️ Reprodução automática bloqueada, aguardando interação do usuário:`, error);
           document.addEventListener('click', playAudio, { once: true });
         });
         
@@ -529,6 +697,9 @@ export default function Meditations() {
   };
 
   const start = () => {
+    // Inicializar contexto de áudio na primeira interação
+    initializeAudioContext();
+    
     setExecutando(true);
     const sessaoAtual = SESSOES.find((x) => x.id === sessao)!;
     const minutos = sessaoAtual.minutos;
@@ -679,13 +850,7 @@ export default function Meditations() {
       customAudioRef.current = null;
     }
     
-    // Remover todos os iframes de áudio padrão do YouTube
-    Object.keys(DEFAULT_YOUTUBE_AUDIOS).forEach(sessionId => {
-      const iframe = document.getElementById(`youtube-audio-${sessionId}`);
-      if (iframe) {
-        iframe.remove();
-      }
-    });
+    // Áudios padrão do Google Drive são gerenciados via customAudioRef
   };
 
   const AudioConfigDialog = ({ sessionId }: { sessionId: string }) => {
