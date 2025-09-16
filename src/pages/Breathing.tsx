@@ -5,6 +5,7 @@ import { SEO } from "@/components/SEO";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { useAuth } from "@/contexts/AuthContext";
 
  type Phase = 'inspire' | 'segure' | 'expire';
 
@@ -20,7 +21,7 @@ import { Slider } from "@/components/ui/slider";
   return `${m}:${s}`;
  }
 
- function updateStats(elapsedSec: number) {
+ async function updateStats(elapsedSec: number, patternUsed: string, user: any, updateUserProgress: any) {
   const total = Number(localStorage.getItem('rz_total_seconds') || '0') + elapsedSec;
   localStorage.setItem('rz_total_seconds', String(total));
   
@@ -42,9 +43,24 @@ import { Slider } from "@/components/ui/slider";
     localStorage.setItem('rz_last_day', today);
     localStorage.setItem('rz_streak', String(streak));
   }
+
+  // Se usuário logado, salvar no Firebase também
+  if (user && updateUserProgress) {
+    try {
+      await updateUserProgress({
+        type: 'breathing',
+        duration: elapsedSec,
+        sessionId: patternUsed
+      });
+      console.log('Progresso de respiração salvo no Firebase');
+    } catch (error) {
+      console.error('Erro ao salvar progresso de respiração no Firebase:', error);
+    }
+  }
  }
 
  export default function Breathing() {
+  const { user, updateUserProgress } = useAuth();
   const [patternKey, setPatternKey] = useState<keyof typeof PATTERNS>('box');
   const [customInhale, setCustomInhale] = useState(4);
   const [customHold, setCustomHold] = useState(4);
@@ -128,7 +144,8 @@ import { Slider } from "@/components/ui/slider";
     intervalRef.current = null;
     if (startTs.current) {
       const elapsedSec = Math.floor((Date.now() - startTs.current) / 1000);
-      updateStats(elapsedSec);
+      const currentPattern = useCustomTiming ? 'custom' : patternKey;
+      updateStats(elapsedSec, currentPattern, user, updateUserProgress);
       startTs.current = null;
     }
   };

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Brain, Heart, Moon, Focus, Zap, Music, Upload, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Ambient {
   key: 'chuva' | 'vento';
@@ -289,21 +290,8 @@ function playDefaultAudio(sessionId: string, customAudioRef?: React.MutableRefOb
   console.log(`🎯 Configuração do áudio do Google Drive concluída para sessão: ${sessionId}`);
 }
 
-function updateStats(minutos: number) {
-  const total = Number(localStorage.getItem('rz_total_seconds') || '0') + minutos * 60;
-  localStorage.setItem('rz_total_seconds', String(total));
-  const lastDay = localStorage.getItem('rz_last_day');
-  const today = new Date().toDateString();
-  let streak = Number(localStorage.getItem('rz_streak') || '0');
-  if (lastDay !== today) {
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    streak = lastDay === yesterday ? streak + 1 : 1;
-    localStorage.setItem('rz_last_day', today);
-    localStorage.setItem('rz_streak', String(streak));
-  }
-}
-
 export default function Meditations() {
+  const { user, updateUserProgress } = useAuth();
   const [sessao, setSessao] = useState(SESSOES[0].id);
   const [executando, setExecutando] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -319,6 +307,37 @@ export default function Meditations() {
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode; filter?: BiquadFilterNode }>>({});
   const timerRef = useRef<number | null>(null);
+
+  // Função auxiliar para atualizar estatísticas (localStorage + Firebase se logado)
+  const updateStats = async (minutos: number, sessaoId: string, customAudioConfig?: CustomAudio) => {
+    // Atualizar localStorage (compatibilidade)
+    const total = Number(localStorage.getItem('rz_total_seconds') || '0') + minutos * 60;
+    localStorage.setItem('rz_total_seconds', String(total));
+    const lastDay = localStorage.getItem('rz_last_day');
+    const today = new Date().toDateString();
+    let streak = Number(localStorage.getItem('rz_streak') || '0');
+    if (lastDay !== today) {
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      streak = lastDay === yesterday ? streak + 1 : 1;
+      localStorage.setItem('rz_last_day', today);
+      localStorage.setItem('rz_streak', String(streak));
+    }
+
+    // Se usuário logado, salvar no Firebase também
+    if (user && updateUserProgress) {
+      try {
+        await updateUserProgress({
+          type: 'meditation',
+          duration: minutos * 60,
+          sessionId: sessaoId,
+          customAudio: customAudioConfig
+        });
+        console.log('Progresso salvo no Firebase');
+      } catch (error) {
+        console.error('Erro ao salvar progresso no Firebase:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     const s = SESSOES.find((x) => x.id === sessao)!;
@@ -728,7 +747,8 @@ export default function Meditations() {
           stop();
           setIsPaused(false);
           // Remover fala de encerramento - silencioso
-          updateStats(minutos);
+          const audioConfig = customAudio[sessao] || { type: 'none', url: '', volume: 0.5 };
+          updateStats(minutos, sessao, audioConfig);
           // Atualizar estatísticas específicas
           const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
           localStorage.setItem('rz_meditation_sessions', String(meditationSessions));
@@ -790,7 +810,8 @@ export default function Meditations() {
               setIsPaused(false);
               // Removido: speak('Encerrando. Leve essa calma e clareza com você.');
               const sessaoAtual = SESSOES.find((x) => x.id === sessao)!;
-              updateStats(sessaoAtual.minutos);
+              const audioConfig = customAudio[sessao] || { type: 'none', url: '', volume: 0.5 };
+              updateStats(sessaoAtual.minutos, sessao, audioConfig);
               // Atualizar estatísticas específicas
               const meditationSessions = Number(localStorage.getItem('rz_meditation_sessions') || '0') + 1;
               localStorage.setItem('rz_meditation_sessions', String(meditationSessions));
