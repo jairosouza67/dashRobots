@@ -1,6 +1,4 @@
 import React from 'react';
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 const EmergencyIndex = () => {
   return (
@@ -16,24 +14,19 @@ const EmergencyIndex = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to="/respirar">
-              <Button 
-                size="lg" 
-                className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 text-lg font-medium rounded-lg min-w-[200px]"
-              >
-                Começar a Respirar
-              </Button>
-            </Link>
+            <a 
+              href="/respirar" 
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 text-lg font-medium rounded-lg min-w-[200px] inline-block transition-colors"
+            >
+              Começar a Respirar
+            </a>
             
-            <Link to="/meditacoes">
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="border-2 border-green-500 text-green-600 hover:bg-green-50 px-8 py-3 text-lg font-medium rounded-lg min-w-[200px]"
-              >
-                Meditações
-              </Button>
-            </Link>
+            <a 
+              href="/meditacoes" 
+              className="border-2 border-green-500 text-green-600 hover:bg-green-50 px-8 py-3 text-lg font-medium rounded-lg min-w-[200px] inline-block transition-colors"
+            >
+              Meditações
+            </a>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
@@ -54,7 +47,15 @@ const EmergencyIndex = () => {
           </div>
           
           <div className="mt-8 text-sm text-gray-500">
-            <p>Versão simplificada - Aguardando correção de problemas de build</p>
+            <p>Versão simplificada - Site em manutenção temporária</p>
+            <p className="mt-2">
+              <a 
+                href="mailto:contato@respirazen.com" 
+                className="text-green-600 hover:underline"
+              >
+                Entre em contato para mais informações
+              </a>
+            </p>
           </div>
         </div>
       </div>
