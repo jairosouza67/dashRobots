@@ -27,69 +27,69 @@ const AMBIENTS: Ambient[] = [
   { key: 'vento', label: 'Vento calmo' },
 ];
 
-// URLs do YouTube para áudios padrão de meditação guiada - Vídeos selecionados de alta qualidade (5-10min)
+// URLs do YouTube para áudios padrão de meditação guiada
 const DEFAULT_YOUTUBE_AUDIOS: Record<string, string> = {
-  foco: 'https://www.youtube.com/watch?v=w306WAzow3s', // MEDITAÇÃO GUIADA em 5 MINUTOS: Desenvolva concentração e foco para trabalhar e estudar (7min) - Antara Meditação
-  relax: 'https://www.youtube.com/watch?v=pT8ON6KAJPA', // 5 MINUTE GUIDED MEDITATION to relax your mind (6min) - Camila Zen - 579K views
-  sono: 'https://www.youtube.com/watch?v=yPCIiBCxK5Y', // Guided Meditation for SLEEPING WELL: 5 MINUTES (5min) - Tudo Sobre Espiritualidade
-  reprogramacao: 'https://www.youtube.com/watch?v=EgRCSTAcxeg', // MEDITAÇÃO GUIADA: 5 MINUTOS PARA TRANSFORMAR SEU DIA (6min) - Meditar para Despertar - 282K views
-  energia: 'https://www.youtube.com/watch?v=wL9C_WJktAo' // MEDITAÇÃO DA MANHÃ: AME-SE (OS 5 MINUTOS MAIS PRECIOSOS DO SEU DIA) (5min) - Meditar para Despertar - 484K views
+  foco: 'https://www.youtube.com/watch?v=WRCyf1wjSHU', // Meditação de 5 minutos para Foco e Concentração
+  relax: 'https://www.youtube.com/watch?v=fKO4-wxByFU', // Meditação Guiada em Português - Relaxamento Profundo (10 min)
+  sono: 'https://www.youtube.com/watch?v=k0FDxc-RfmI', // Meditação guiada para relaxar e dormir rápido 5 a 10 minutos
+  reprogramacao: 'https://www.youtube.com/watch?v=fUKkmwpzjvA', // Reprogramação Mental - Meditação Guiada para Buscar Sabedoria
+  energia: 'https://www.youtube.com/watch?v=yfGo_p9DnRE' // Meditação guiada em Português - 5 minutos para começar a manhã
 };
 
-// URLs alternativas de alta qualidade caso os vídeos principais falhem
+// URLs alternativas caso o Google Drive falhe (podem ser configuradas pelo usuário)
 const FALLBACK_AUDIOS: Record<string, string> = {
-  foco: 'https://www.youtube.com/watch?v=mTJ56qy2Flg', // Guided Meditation 5 minutes! | Direct and deep | Mindfulness (6min) - Yoga para Você - 1.8M views
-  relax: 'https://www.youtube.com/watch?v=F-6czNN3K_w', // Meditação Guiada 5 Minutos | MINDFULNESS E EQUILÍBRIO! (6min) - Yoga para Você - 142K views
-  sono: 'https://www.youtube.com/watch?v=k9pmLrMSNIE', // Meditação guiada para dormir rápido e profundamente (Mindfulness) (12min) - Meditar para Despertar - 749K views
-  reprogramacao: 'https://www.youtube.com/watch?v=QCUlVZeQHEE', // Meditação para AUTOCONFIANÇA | Afirmações Positivas (5min) - Yoga Mudra - 488K views
-  energia: 'https://www.youtube.com/watch?v=fmBRuuQ0Gs8' // Meditação Guiada - 5 MINUTOS (5min) - Yoga Mudra - 796K views
+  foco: '/test-audio.mp3', // Áudio local de teste
+  relax: '/test-audio.mp3',
+  sono: '/test-audio.mp3',
+  reprogramacao: '/test-audio.mp3',
+  energia: '/test-audio.mp3'
 };
 
 const SESSOES = [
   { 
     id: 'foco', 
     label: 'Foco Profundo', 
-    minutos: 7, 
+    minutos: 5, 
     icon: Focus,
-    description: 'Desenvolva concentração profunda para trabalhar e estudar',
+    description: 'Desenvolva concentração e clareza mental',
     type: 'hybrid',
-    techniques: ['respiração consciente', 'ancoragem mental', 'clareza cognitiva']
+    techniques: ['respiração', 'visualização', 'ancoragem']
   },
   { 
     id: 'relax', 
     label: 'Relaxamento Ativo', 
-    minutos: 6, 
+    minutos: 7, 
     icon: Heart,
-    description: 'Libere tensões e acesse um estado de calma profunda',
+    description: 'Libere tensões e restaure energia',
     type: 'hybrid',
-    techniques: ['mindfulness', 'relaxamento muscular', 'presença plena']
+    techniques: ['body scan', 'respiração', 'sons ambientes']
   },
   { 
     id: 'sono', 
     label: 'Preparação para o Sono', 
-    minutos: 5, 
+    minutos: 10, 
     icon: Moon,
-    description: 'Prepare corpo e mente para um sono reparador e profundo',
+    description: 'Acalme a mente para um sono reparador',
     type: 'traditional',
-    techniques: ['respiração suave', 'relaxamento progressivo', 'aquietamento mental']
+    techniques: ['respiração lenta', 'relaxamento progressivo']
   },
   {
     id: 'reprogramacao',
     label: 'Reprogramação Mental',
-    minutos: 6,
+    minutos: 8,
     icon: Brain,
-    description: 'Transforme seu dia com intenções positivas e renovação mental',
+    description: 'Transforme padrões mentais limitantes',
     type: 'hybrid',
-    techniques: ['visualização criativa', 'afirmações', 'renovação energética']
+    techniques: ['afirmações', 'visualização', 'ancoragem neural']
   },
   {
     id: 'energia',
     label: 'Ativação Energética',
-    minutos: 5,
+    minutos: 6,
     icon: Zap,
-    description: 'Desperte amor-próprio e vitalidade para começar o dia',
+    description: 'Desperte vitalidade e motivação',
     type: 'hybrid',
-    techniques: ['auto-amor', 'ativação matinal', 'energia vital']
+    techniques: ['respiração energizante', 'movimento sutil', 'intenção']
   }
 ];
 
@@ -516,10 +516,66 @@ export default function Meditations() {
     }
 
     if (audioConfig.type === 'youtube') {
-      // Para YouTube, usar função dedicada para criar iframe
+      // Para YouTube, extrair apenas o áudio usando iframe invisível otimizado
       const videoId = extractYouTubeId(audioConfig.url);
       if (videoId) {
-        createYouTubeIframe(videoId, sessionId);
+        try {
+          // Criar iframe invisível com configurações específicas para áudio
+          const iframe = document.createElement('iframe');
+          iframe.style.position = 'absolute';
+          iframe.style.left = '-9999px';
+          iframe.style.top = '-9999px';
+          iframe.style.width = '1px';
+          iframe.style.height = '1px';
+          iframe.style.opacity = '0';
+          iframe.style.visibility = 'hidden';
+          iframe.style.pointerEvents = 'none';
+          iframe.allow = 'autoplay; encrypted-media';
+          iframe.setAttribute('allowfullscreen', 'false');
+          
+          // URL otimizada para reprodução de áudio apenas
+          const youtubeUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&disablekb=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&start=0`;
+          
+          iframe.src = youtubeUrl;
+          
+          // Adicionar listener para detectar duração do YouTube
+          const handleYouTubeMessage = (event: MessageEvent) => {
+            if (event.origin !== 'https://www.youtube.com') return;
+            try {
+              const data = JSON.parse(event.data);
+              if (data.event === 'video-progress' && data.info && data.info.duration) {
+                const duration = Math.round(data.info.duration);
+                console.log('Duração do YouTube detectada:', duration, 'segundos');
+                setDuracaoAudio(duration);
+              }
+            } catch (e) {
+              // Ignorar mensagens que não são JSON válido
+            }
+          };
+          
+          window.addEventListener('message', handleYouTubeMessage);
+          
+          // Limpar listener após 10 segundos (fallback)
+          setTimeout(() => {
+            window.removeEventListener('message', handleYouTubeMessage);
+            // Se não conseguiu detectar a duração, usar tempo padrão da sessão
+            if (!duracaoAudio) {
+              console.log('Não foi possível detectar duração do YouTube, usando tempo padrão');
+            }
+          }, 10000);
+          
+          // Adicionar ao DOM como elemento invisível
+          document.body.appendChild(iframe);
+          
+          // Salvar referência
+          customAudioRef.current = iframe;
+          
+          console.log('YouTube áudio invisível configurado');
+          
+        } catch (error) {
+          console.error('Erro ao configurar áudio do YouTube:', error);
+          alert('Erro ao configurar o áudio do YouTube. Considerações: 1) Alguns vídeos têm restrições de reprodução. 2) Use um arquivo MP3 direto para controle total.');
+        }
       } else {
         alert('URL do YouTube inválida. Formatos aceitos: youtube.com/watch?v=ID ou youtu.be/ID');
       }
@@ -556,47 +612,39 @@ export default function Meditations() {
           console.error(`❌ Erro ao carregar áudio MP3:`, e);
           console.error(`❌ URL que falhou: ${audioConfig.url}`);
           
-          // Tentar fallback se a URL original falhou
-          if (sessionId && FALLBACK_AUDIOS[sessionId]) {
+          // Tentar fallback se a URL original falhou e é do Google Drive
+          if (audioConfig.url.includes('drive.google.com') && sessionId && FALLBACK_AUDIOS[sessionId]) {
             console.log(`🔄 Tentando fallback para ${sessionId}: ${FALLBACK_AUDIOS[sessionId]}`);
             
-            // Se o fallback também for um YouTube, usar iframe
-            if (FALLBACK_AUDIOS[sessionId].includes('youtube.com') || FALLBACK_AUDIOS[sessionId].includes('youtu.be')) {
-              const videoId = extractYouTubeId(FALLBACK_AUDIOS[sessionId]);
-              if (videoId) {
-                createYouTubeIframe(videoId, sessionId);
+            // Criar novo elemento audio com URL de fallback
+            const fallbackAudio = new Audio(FALLBACK_AUDIOS[sessionId]);
+            fallbackAudio.volume = audioConfig.volume;
+            fallbackAudio.loop = true;
+            
+            fallbackAudio.addEventListener('loadedmetadata', () => {
+              console.log(`✅ Fallback MP3 carregado com sucesso`);
+              if (fallbackAudio.duration && isFinite(fallbackAudio.duration)) {
+                const duration = Math.round(fallbackAudio.duration);
+                console.log(`⏱️ Duração do fallback MP3: ${duration} segundos`);
+                setDuracaoAudio(duration);
               }
-            } else {
-              // Criar novo elemento audio com URL de fallback
-              const fallbackAudio = new Audio(FALLBACK_AUDIOS[sessionId]);
-              fallbackAudio.volume = audioConfig.volume;
-              fallbackAudio.loop = true;
-              
-              fallbackAudio.addEventListener('loadedmetadata', () => {
-                console.log(`✅ Fallback MP3 carregado com sucesso`);
-                if (fallbackAudio.duration && isFinite(fallbackAudio.duration)) {
-                  const duration = Math.round(fallbackAudio.duration);
-                  console.log(`⏱️ Duração do fallback MP3: ${duration} segundos`);
-                  setDuracaoAudio(duration);
-                }
-              });
-              
-              fallbackAudio.addEventListener('error', (fallbackError) => {
-                console.error(`❌ Fallback também falhou:`, fallbackError);
-              });
-              
-              customAudioRef.current = fallbackAudio;
-              
-              // Tentar reproduzir o fallback
-              fallbackAudio.play().then(() => {
-                console.log(`✅ Fallback reproduzindo com sucesso!`);
-              }).catch((error) => {
-                console.log(`⚠️ Fallback bloqueado, aguardando interação:`, error);
-                document.addEventListener('click', () => {
-                  fallbackAudio.play().catch(err => console.error('Erro no fallback:', err));
-                }, { once: true });
-              });
-            }
+            });
+            
+            fallbackAudio.addEventListener('error', (fallbackError) => {
+              console.error(`❌ Fallback também falhou:`, fallbackError);
+            });
+            
+            customAudioRef.current = fallbackAudio;
+            
+            // Tentar reproduzir o fallback
+            fallbackAudio.play().then(() => {
+              console.log(`✅ Fallback reproduzindo com sucesso!`);
+            }).catch((error) => {
+              console.log(`⚠️ Fallback bloqueado, aguardando interação:`, error);
+              document.addEventListener('click', () => {
+                fallbackAudio.play().catch(err => console.error('Erro no fallback:', err));
+              }, { once: true });
+            });
           }
         });
         
@@ -625,66 +673,6 @@ export default function Meditations() {
         console.error('Erro ao criar elemento de áudio:', error);
         alert('Erro ao configurar o áudio personalizado.');
       }
-    }
-  };
-
-  const createYouTubeIframe = (videoId: string, sessionId: string) => {
-    try {
-      // Criar iframe invisível com configurações específicas para áudio
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'absolute';
-      iframe.style.left = '-9999px';
-      iframe.style.top = '-9999px';
-      iframe.style.width = '1px';
-      iframe.style.height = '1px';
-      iframe.style.opacity = '0';
-      iframe.style.visibility = 'hidden';
-      iframe.style.pointerEvents = 'none';
-      iframe.allow = 'autoplay; encrypted-media';
-      iframe.setAttribute('allowfullscreen', 'false');
-      
-      // URL otimizada para reprodução de áudio apenas
-      const youtubeUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&disablekb=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&start=0`;
-      
-      iframe.src = youtubeUrl;
-      
-      // Adicionar listener para detectar duração do YouTube
-      const handleYouTubeMessage = (event: MessageEvent) => {
-        if (event.origin !== 'https://www.youtube.com') return;
-        try {
-          const data = JSON.parse(event.data);
-          if (data.event === 'video-progress' && data.info && data.info.duration) {
-            const duration = Math.round(data.info.duration);
-            console.log('Duração do YouTube detectada:', duration, 'segundos');
-            setDuracaoAudio(duration);
-          }
-        } catch (e) {
-          // Ignorar mensagens que não são JSON válido
-        }
-      };
-      
-      window.addEventListener('message', handleYouTubeMessage);
-      
-      // Limpar listener após 10 segundos (fallback)
-      setTimeout(() => {
-        window.removeEventListener('message', handleYouTubeMessage);
-        // Se não conseguiu detectar a duração, usar tempo padrão da sessão
-        if (!duracaoAudio) {
-          console.log('Não foi possível detectar duração do YouTube, usando tempo padrão');
-        }
-      }, 10000);
-      
-      // Adicionar ao DOM como elemento invisível
-      document.body.appendChild(iframe);
-      
-      // Salvar referência
-      customAudioRef.current = iframe;
-      
-      console.log(`YouTube áudio invisível configurado para ${sessionId}`);
-      
-    } catch (error) {
-      console.error('Erro ao configurar áudio do YouTube:', error);
-      alert('Erro ao configurar o áudio do YouTube. Considerações: 1) Alguns vídeos têm restrições de reprodução. 2) Use um arquivo MP3 direto para controle total.');
     }
   };
 
@@ -920,13 +908,12 @@ export default function Meditations() {
                    placeholder={audioType === 'youtube' ? 'https://www.youtube.com/watch?v=...' : 'https://exemplo.com/audio.mp3'}
                  />
                  {audioType === 'youtube' && (
-                       <div className="text-xs text-muted-foreground mt-1 space-y-1">
-                         <p>🎵 <strong>Áudio apenas:</strong> O vídeo será reproduzido de forma invisível</p>
-                         <p>⚠️ <strong>Limitação:</strong> Alguns vídeos podem ter restrições de reprodução</p>
-                         <p>💡 <strong>Dica:</strong> Para controle total de volume, use um arquivo MP3 direto</p>
-                         <p>🎯 <strong>Formatos aceitos:</strong> youtube.com/watch?v=ID ou youtu.be/ID</p>
-                         <p>✨ <strong>Vídeos pré-selecionados:</strong> Meditações de alta qualidade já configuradas!</p>
-                       </div>
+                   <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                     <p>🎵 <strong>Áudio apenas:</strong> O vídeo será reproduzido de forma invisível</p>
+                     <p>⚠️ <strong>Limitação:</strong> Alguns vídeos podem ter restrições de reprodução</p>
+                     <p>💡 <strong>Dica:</strong> Para controle total de volume, use um arquivo MP3 direto</p>
+                     <p>� <strong>Formatos aceitos:</strong> youtube.com/watch?v=ID ou youtu.be/ID</p>
+                   </div>
                  )}
                </div>
               
@@ -1026,11 +1013,6 @@ export default function Meditations() {
                               {tech}
                             </Badge>
                           ))}
-                        </div>
-                        {/* Indicador de vídeo de qualidade */}
-                        <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-                          <Music className="h-3 w-3" />
-                          <span>Vídeo de alta qualidade incluído</span>
                         </div>
                         {/* Timer regressivo dentro do card */}
                         {(executando || isPaused) && sessao === s.id && (
