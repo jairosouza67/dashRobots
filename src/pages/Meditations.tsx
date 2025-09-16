@@ -27,6 +27,15 @@ const AMBIENTS: Ambient[] = [
   { key: 'vento', label: 'Vento calmo' },
 ];
 
+// URLs padrão do YouTube para cada sessão (substitua pelos seus áudios)
+const DEFAULT_YOUTUBE_AUDIOS: Record<string, string> = {
+  foco: 'https://www.youtube.com/watch?v=jfKfPfyJRdk', // Música de foco e concentração
+  relax: 'https://www.youtube.com/watch?v=fmBRuuQ0Gs8&t=1s', // Meditação Guiada - 5 MINUTOS
+  sono: 'https://www.youtube.com/watch?v=YQIqgxeNtl0', // Música para dormir
+  reprogramacao: 'https://www.youtube.com/watch?v=ZToicYcHIOU', // Música para meditação
+  energia: 'https://www.youtube.com/watch?v=lFcSrYw-ARY' // Música energizante
+};
+
 const SESSOES = [
   { 
     id: 'foco', 
@@ -129,11 +138,62 @@ const ROTEIROS_HIBRIDOS = {
   }
 };
 
-function speak(text: string, lang = 'pt-BR', rate = 1) {
+// Função para extrair ID do YouTube
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+  return match ? match[1] : null;
+}
+
+// Função modificada para usar áudio do YouTube como padrão
+function speak(text: string, sessionId?: string, lang = 'pt-BR', rate = 1, customAudioRef?: React.MutableRefObject<HTMLAudioElement | HTMLIFrameElement | null>) {
+  // Se há uma sessão específica e URL do YouTube configurada, usar áudio do YouTube
+  if (sessionId && DEFAULT_YOUTUBE_AUDIOS[sessionId]) {
+    playDefaultYouTubeAudio(sessionId, customAudioRef);
+    return;
+  }
+  
+  // Fallback para síntese de voz
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
   u.rate = rate;
   window.speechSynthesis.speak(u);
+}
+
+// Função para reproduzir áudio padrão do YouTube
+function playDefaultYouTubeAudio(sessionId: string, customAudioRef?: React.MutableRefObject<HTMLAudioElement | HTMLIFrameElement | null>) {
+  const youtubeUrl = DEFAULT_YOUTUBE_AUDIOS[sessionId];
+  if (!youtubeUrl) return;
+  
+  const videoId = extractYouTubeId(youtubeUrl);
+  if (!videoId) {
+    console.warn(`URL do YouTube inválida para sessão ${sessionId}:`, youtubeUrl);
+    return;
+  }
+  
+  // Remover iframe anterior se existir
+  const existingIframe = document.getElementById(`youtube-audio-${sessionId}`);
+  if (existingIframe) {
+    existingIframe.remove();
+  }
+  
+  // Criar iframe invisível para reproduzir apenas o áudio
+  const iframe = document.createElement('iframe');
+  iframe.id = `youtube-audio-${sessionId}`;
+  iframe.style.display = 'none';
+  iframe.style.position = 'absolute';
+  iframe.style.left = '-9999px';
+  iframe.allow = 'autoplay';
+  iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&cc_load_policy=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+  
+  // Adicionar ao DOM
+  document.body.appendChild(iframe);
+  
+  // Armazenar referência no customAudioRef se fornecido
+  if (customAudioRef) {
+    customAudioRef.current = iframe as any;
+  }
+  
+  console.log(`Reproduzindo áudio padrão do YouTube para sessão: ${sessionId}`);
 }
 
 function updateStats(minutos: number) {
@@ -519,9 +579,7 @@ export default function Meditations() {
       } else if (customAudioRef.current instanceof HTMLIFrameElement) {
         // Para YouTube iframe, enviar comando de pause via postMessage
         try {
-          const iframe = customAudioRef.current;
-          iframe.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-          console.log('Comando de pause enviado para YouTube iframe');
+          customAudioRef.current.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', 'https://www.youtube.com');
         } catch (e) {
           console.warn('Não foi possível pausar o vídeo do YouTube:', e);
         }
@@ -538,9 +596,7 @@ export default function Meditations() {
       } else if (customAudioRef.current instanceof HTMLIFrameElement) {
         // Para YouTube iframe, enviar comando de play via postMessage
         try {
-          const iframe = customAudioRef.current;
-          iframe.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-          console.log('Comando de play enviado para YouTube iframe');
+          customAudioRef.current.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', 'https://www.youtube.com');
         } catch (e) {
           console.warn('Não foi possível retomar o vídeo do YouTube:', e);
         }
@@ -622,6 +678,14 @@ export default function Meditations() {
       }
       customAudioRef.current = null;
     }
+    
+    // Remover todos os iframes de áudio padrão do YouTube
+    Object.keys(DEFAULT_YOUTUBE_AUDIOS).forEach(sessionId => {
+      const iframe = document.getElementById(`youtube-audio-${sessionId}`);
+      if (iframe) {
+        iframe.remove();
+      }
+    });
   };
 
   const AudioConfigDialog = ({ sessionId }: { sessionId: string }) => {
