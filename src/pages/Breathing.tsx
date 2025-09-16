@@ -46,7 +46,20 @@ import { Slider } from "@/components/ui/slider";
 
  export default function Breathing() {
   const [patternKey, setPatternKey] = useState<keyof typeof PATTERNS>('box');
-  const durations = PATTERNS[patternKey].durations; // [inspire, segure, expire]
+  const [customInhale, setCustomInhale] = useState(4);
+  const [customHold, setCustomHold] = useState(4);
+  const [customExhale, setCustomExhale] = useState(4);
+  const [useCustomTiming, setUseCustomTiming] = useState(false);
+  const [durations, setDurations] = useState<[number, number, number]>(PATTERNS[patternKey].durations);
+
+  // Update durations when pattern or custom timing changes
+  useEffect(() => {
+    if (useCustomTiming) {
+      setDurations([customInhale, customHold, customExhale]);
+    } else {
+      setDurations(PATTERNS[patternKey].durations);
+    }
+  }, [useCustomTiming, customInhale, customHold, customExhale, patternKey]);
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customPatterns, setCustomPatterns] = useState<any[]>(() => {
     try {
@@ -157,63 +170,150 @@ import { Slider } from "@/components/ui/slider";
 
           <section className="order-2 lg:order-1 space-y-6">
 
-            <div className="space-y-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
                 {showCustomModal && (
                   <CustomPatternModal
                     onSave={handleSavePattern}
                     onClose={() => setShowCustomModal(false)}
                   />
                 )}
-                {customPatterns.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-medium text-gray-700">Meus padrões</h3>
-                    <ul className="mt-2 space-y-1">
-                      {customPatterns.map((p, i) => (
-                        <li key={i} className="text-sm text-gray-600">{p.name} ({p.inhale}-{p.hold}-{p.exhale}-{p.rest})</li>
-                      ))}
-                    </ul>
+
+
+              {/* Modo de Respiração */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">Configurações de Respiração</h3>
+                
+                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                  <Label className="text-sm font-medium text-gray-700">Modo personalizado:</Label>
+                  <button 
+                    onClick={() => setUseCustomTiming(!useCustomTiming)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      useCustomTiming ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                    aria-pressed={useCustomTiming}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      useCustomTiming ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                {!useCustomTiming ? (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">Padrão pré-definido</Label>
+                    <Select value={patternKey} onValueChange={(v) => setPatternKey(v as keyof typeof PATTERNS)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Escolha um padrão" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(PATTERNS).map(([key, p]) => (
+                          <SelectItem key={key} value={key}>{p.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <Label className="text-sm font-medium text-green-800 mb-2 block">⬆️ Inspirar: {customInhale}s</Label>
+                      <Slider 
+                        value={[customInhale]} 
+                        min={2} 
+                        max={12} 
+                        step={1} 
+                        onValueChange={(v) => setCustomInhale(v[0])} 
+                        className="w-full" 
+                      />
+                      <div className="flex justify-between text-xs text-green-600 mt-1">
+                        <span>2s</span>
+                        <span>12s</span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-yellow-50 rounded-lg p-4">
+                      <Label className="text-sm font-medium text-yellow-800 mb-2 block">⏸️ Segure: {customHold}s</Label>
+                      <Slider 
+                        value={[customHold]} 
+                        min={0} 
+                        max={12} 
+                        step={1} 
+                        onValueChange={(v) => setCustomHold(v[0])} 
+                        className="w-full" 
+                      />
+                      <div className="flex justify-between text-xs text-yellow-600 mt-1">
+                        <span>0s</span>
+                        <span>12s</span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <Label className="text-sm font-medium text-blue-800 mb-2 block">⬇️ Expirar: {customExhale}s</Label>
+                      <Slider 
+                        value={[customExhale]} 
+                        min={2} 
+                        max={12} 
+                        step={1} 
+                        onValueChange={(v) => setCustomExhale(v[0])} 
+                        className="w-full" 
+                      />
+                      <div className="flex justify-between text-xs text-blue-600 mt-1">
+                        <span>2s</span>
+                        <span>12s</span>
+                      </div>
+                    </div>
                   </div>
                 )}
-
-              <div>
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">Padrão</Label>
-                <Select value={patternKey} onValueChange={(v) => setPatternKey(v as keyof typeof PATTERNS)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Escolha" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(PATTERNS).map(([key, p]) => (
-                      <SelectItem key={key} value={key}>{p.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
-              <div>
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">Respirações por minuto: {bpm}</Label>
-                <Slider value={[bpm]} min={4} max={10} step={1} onValueChange={(v) => setBpm(v[0])} className="w-full" />
+              {/* Configurações Gerais */}
+              <div className="space-y-4">
+                
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">Respirações por minuto: {bpm}</Label>
+                  <Slider value={[bpm]} min={4} max={10} step={1} onValueChange={(v) => setBpm(v[0])} className="w-full" />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>4 rpm</span>
+                    <span>10 rpm</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Vibração</Label>
+                    <p className="text-xs text-gray-500">Vibra ao mudar de fase</p>
+                  </div>
+                  <button 
+                    onClick={() => setVibrate((v) => !v)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      vibrate ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                    aria-pressed={vibrate}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      vibrate ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-gray-700">Vibração:</Label>
-                <button 
-                  onClick={() => setVibrate((v) => !v)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    vibrate ? 'bg-green-500' : 'bg-gray-300'
-                  }`}
-                  aria-pressed={vibrate}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    vibrate ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
-                </button>
+              {/* Status da Sessão */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-purple-900 mb-2">📊 Status da Sessão</h3>
+                <div className="text-sm text-purple-700">
+                  <div className="flex justify-between items-center">
+                    <span>Tempo:</span>
+                    <span className="font-mono font-medium">{formatTime(elapsed)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Fase atual:</span>
+                    <span className="font-medium text-purple-800">{phaseLabel}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Próxima mudança:</span>
+                    <span className="font-mono font-medium">{remaining}s</span>
+                  </div>
+                </div>
               </div>
-
-              <div className="text-xs text-gray-500 space-y-1">
-                <div>Tempo: {formatTime(elapsed)} • Fase: <span className="font-medium text-gray-700">{phaseLabel}</span> • Próx.: {remaining}s</div>
-              </div>
-
-
             </div>
           </section>
 
