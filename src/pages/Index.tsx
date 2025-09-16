@@ -31,7 +31,7 @@ const Index = () => {
       <section className="container mx-auto px-6 py-16 md:py-24 flex flex-col justify-center min-h-screen relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-left max-w-2xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-3">
               Respiração Guiada e<br />Meditação, em 1<br />minuto
             </h1>
             
