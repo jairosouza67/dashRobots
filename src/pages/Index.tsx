@@ -47,10 +47,10 @@ const Index = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border border-white/10 animate-pulse delay-1000"></div>
       </div>
 
-      <section className="container mx-auto px-6 py-4 md:py-6 flex flex-col justify-center min-h-screen relative z-10">
+  <section className="container mx-auto px-6 pt-[2px] pb-4 md:pt-[4px] md:pb-6 flex flex-col justify-center min-h-screen relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-left max-w-2xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-3">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-3 mt-0">
               Respiração Guiada e<br />Meditação, em 1<br />minuto
             </h1>
             
