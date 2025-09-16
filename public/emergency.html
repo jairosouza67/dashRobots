@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RespiraZen - Respiração e Meditação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0fdfa 0%, #dbeafe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            color: #1f2937;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #6b7280;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #10b981;
+            border: 2px solid #10b981;
+        }
+        
+        .btn-secondary:hover {
+            background: #f0fdf4;
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .feature {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: left;
+        }
+        
+        .feature h3 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .feature p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fef3c7;
+            border-radius: 10px;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .status p {
+            color: #92400e;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧘‍♀️ RespiraZen</h1>
+        <p class="subtitle">
+            Respiração guiada e meditação em 1 minuto.<br>
+            Reduza ansiedade, foque melhor e durma com facilidade.
+        </p>
+        
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="startBreathing()">
+                Começar a Respirar
+            </button>
+            <button class="btn btn-secondary" onclick="startMeditation()">
+                Meditações
+            </button>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🫁 Respiração</h3>
+                <p>Técnicas guiadas: 4-4-4-4, 4-7-8, Coerência cardíaca</p>
+            </div>
+            <div class="feature">
+                <h3>🧘 Meditação</h3>
+                <p>Sessões de 1-10 minutos com sons ambientes</p>
+            </div>
+            <div class="feature">
+                <h3>📊 Progresso</h3>
+                <p>Acompanhe seu desenvolvimento e estatísticas</p>
+            </div>
+        </div>
+        
+        <div class="status">
+            <p><strong>Status:</strong> Site funcionando em modo simplificado</p>
+            <p>Versão completa será restaurada em breve</p>
+        </div>
+    </div>
+    
+    <script>
+        function startBreathing() {
+            alert('Funcionalidade de respiração será implementada em breve!\n\nPor enquanto, experimente:\n- Inspire por 4 segundos\n- Segure por 4 segundos\n- Expire por 4 segundos\n- Segure por 4 segundos\n\nRepita por 1 minuto.');
+        }
+        
+        function startMeditation() {
+            alert('Funcionalidade de meditação será implementada em breve!\n\nPor enquanto, experimente:\n- Sente-se confortavelmente\n- Feche os olhos\n- Respire naturalmente\n- Observe sua respiração por 1 minuto');
+        }
+        
+        // Verificar se está funcionando
+        console.log('RespiraZen carregado com sucesso!');
+        console.log('Data/hora:', new Date().toLocaleString('pt-BR'));
+    </script>
+</body>
+</html>
