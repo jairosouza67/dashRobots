@@ -1,0 +1,107 @@
+
+[
+  {
+    "id": "1",
+    "author": {
+      "name": "Maria Silva",
+      "avatar": "👩‍💼",
+      "level": 5
+    },
+    "content": "Completei minha primeira semana consecutiva de meditação! A técnica 4-7-8 tem me ajudado muito com a ansiedade antes das reuniões. Gratidão! 🙏",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "likes": 24,
+    "comments": 8,
+    "category": "milestone"
+  },
+  {
+    "id": "2",
+    "author": {
+      "name": "João Santos",
+      "avatar": "🧑‍💻",
+      "level": 12
+    },
+    "content": "Dica para quem está começando: comece com apenas 2 minutos por dia. Depois de uma semana, você vai querer naturalmente aumentar o tempo. A consistência é mais importante que a duração! ✨",
+    "timestamp": "2024-01-15T08:15:00Z",
+    "likes": 45,
+    "comments": 12,
+    "category": "tip"
+  },
+  {
+    "id": "3",
+    "author": {
+      "name": "Ana Costa",
+      "avatar": "👩‍🎨",
+      "level": 8
+    },
+    "content": "A sessão de respiração box breathing de hoje foi transformadora. Consegui manter o foco por 10 minutos inteiros! Quem mais pratica essa técnica?",
+    "timestamp": "2024-01-14T19:45:00Z",
+    "likes": 31,
+    "comments": 15,
+    "category": "breathing"
+  },
+  {
+    "id": "4",
+    "author": {
+      "name": "Carlos Oliveira",
+      "avatar": "👨‍🏫",
+      "level": 20
+    },
+    "content": "Marco histórico: 100 dias consecutivos! 🎉 O RespiraZen mudou minha vida. Durmo melhor, me concentro mais e estou muito mais calmo. Obrigado a toda essa comunidade incrível!",
+    "timestamp": "2024-01-14T16:20:00Z",
+    "likes": 89,
+    "comments": 23,
+    "category": "milestone"
+  },
+  {
+    "id": "5",
+    "author": {
+      "name": "Fernanda Lima",
+      "avatar": "👩‍⚕️",
+      "level": 15
+    },
+    "content": "Para quem trabalha na área da saúde: a respiração diafragmática tem me ajudado muito entre os plantões. 5 minutos e já sinto a diferença. Recomendo! 💙",
+    "timestamp": "2024-01-14T14:10:00Z",
+    "likes": 52,
+    "comments": 18,
+    "category": "tip"
+  },
+  {
+    "id": "6",
+    "author": {
+      "name": "Pedro Mendes",
+      "avatar": "👨‍🔬",
+      "level": 7
+    },
+    "content": "Estudos mostram que 8 semanas de prática regular de mindfulness podem alterar a estrutura do cérebro. Estou na terceira semana e já sinto diferenças na minha capacidade de concentração! 🧠",
+    "timestamp": "2024-01-13T20:30:00Z",
+    "likes": 38,
+    "comments": 11,
+    "category": "tip"
+  },
+  {
+    "id": "7",
+    "author": {
+      "name": "Lucia Santos",
+      "avatar": "👩‍🎓",
+      "level": 18
+    },
+    "content": "50 dias de streak! 🔥 Minha dica: criem um ritual. Eu sempre faço minha sessão matinal com uma xícara de chá verde e 5 minutos antes de abrir o laptop. Virou automático!",
+    "timestamp": "2024-01-13T07:15:00Z",
+    "likes": 67,
+    "comments": 19,
+    "category": "milestone"
+  },
+  {
+    "id": "8",
+    "author": {
+      "name": "Roberto Silva",
+      "avatar": "👨‍💼",
+      "level": 25
+    },
+    "content": "Para executivos estressados como eu: o box breathing antes de cada reunião importante é um game changer. 4 minutos que transformam completamente meu estado mental. Experimentem! 💼",
+    "timestamp": "2024-01-12T16:45:00Z",
+    "likes": 74,
+    "comments": 22,
+    "category": "breathing"
+  }
+]

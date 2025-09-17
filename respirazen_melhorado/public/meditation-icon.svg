@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <style>
+      .meditation-figure { fill: #22c55e; }
+      .circle-arrow { fill: none; stroke: #22c55e; stroke-width: 8; stroke-linecap: round; }
+    </style>
+  </defs>
+  
+  <!-- Circular arrows indicating cycle/flow -->
+  <path class="circle-arrow" d="M 40 100 A 60 60 0 1 1 160 100" marker-end="url(#arrowhead)"/>
+  <path class="circle-arrow" d="M 160 100 A 60 60 0 1 1 40 100" marker-end="url(#arrowhead)"/>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e" />
+    </marker>
+  </defs>
+  
+  <!-- Meditation figure -->
+  <g class="meditation-figure">
+    <!-- Head -->
+    <circle cx="100" cy="70" r="18"/>
+    
+    <!-- Body -->
+    <ellipse cx="100" cy="105" rx="25" ry="20"/>
+    
+    <!-- Arms in meditation pose -->
+    <ellipse cx="75" cy="100" rx="8" ry="15" transform="rotate(-30 75 100)"/>
+    <ellipse cx="125" cy="100" rx="8" ry="15" transform="rotate(30 125 100)"/>
+    
+    <!-- Hands in mudra position -->
+    <circle cx="70" cy="110" r="6"/>
+    <circle cx="130" cy="110" r="6"/>
+    
+    <!-- Legs in lotus position -->
+    <ellipse cx="85" cy="130" rx="20" ry="12" transform="rotate(-15 85 130)"/>
+    <ellipse cx="115" cy="130" rx="20" ry="12" transform="rotate(15 115 130)"/>
+    
+    <!-- Feet -->
+    <ellipse cx="75" cy="140" rx="8" ry="5"/>
+    <ellipse cx="125" cy="140" rx="8" ry="5"/>
+  </g>
+</svg>
