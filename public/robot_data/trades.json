@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "ticket": "154728394",
+    "symbol": "EURUSD",
+    "direction": "BUY",
+    "type": "OPEN",
+    "lot": 0.1,
+    "entry_price": 1.0856,
+    "exit_price": null,
+    "profit": 15.50,
+    "robot_name": "TrendFollowing_EA",
+    "open_time": "2024-01-15T14:30:00Z",
+    "close_time": null,
+    "is_open": true,
+    "comment": "Trend signal confirmed"
+  },
+  {
+    "id": 2,
+    "ticket": "154728395",
+    "symbol": "GBPUSD",
+    "direction": "SELL",
+    "type": "CLOSE",
+    "lot": 0.2,
+    "entry_price": 1.2650,
+    "exit_price": 1.2620,
+    "profit": 60.0,
+    "robot_name": "MeanReversion_EA",
+    "open_time": "2024-01-15T13:15:00Z",
+    "close_time": "2024-01-15T14:45:00Z",
+    "is_open": false,
+    "comment": "TP reached"
+  },
+  {
+    "id": 3,
+    "ticket": "154728396",
+    "symbol": "USDJPY",
+    "direction": "BUY",
+    "type": "CLOSE",
+    "lot": 0.15,
+    "entry_price": 148.50,
+    "exit_price": 148.80,
+    "profit": 45.0,
+    "robot_name": "Scalping_EA",
+    "open_time": "2024-01-15T14:00:00Z",
+    "close_time": "2024-01-15T14:30:00Z",
+    "is_open": false,
+    "comment": "Quick scalp"
+  }
+]

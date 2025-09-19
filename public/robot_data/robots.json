@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "name": "TrendFollowing_EA",
+    "status": "ACTIVE",
+    "current_positions": 2,
+    "total_trades": 47,
+    "profit_total": 1285.50,
+    "last_heartbeat": "2024-01-15T14:45:00Z",
+    "symbol": "EURUSD",
+    "timeframe": "H1",
+    "magic_number": 12345,
+    "version": "2.1.0"
+  },
+  {
+    "id": 2,
+    "name": "MeanReversion_EA",
+    "status": "ACTIVE",
+    "current_positions": 1,
+    "total_trades": 39,
+    "profit_total": 950.25,
+    "last_heartbeat": "2024-01-15T14:45:00Z",
+    "symbol": "GBPUSD",
+    "timeframe": "M15",
+    "magic_number": 54321,
+    "version": "1.8.3"
+  },
+  {
+    "id": 3,
+    "name": "Scalping_EA",
+    "status": "ACTIVE",
+    "current_positions": 0,
+    "total_trades": 156,
+    "profit_total": 345.75,
+    "last_heartbeat": "2024-01-15T14:44:00Z",
+    "symbol": "USDJPY",
+    "timeframe": "M5",
+    "magic_number": 98765,
+    "version": "3.0.1"
+  },
+  {
+    "id": 4,
+    "name": "News_EA",
+    "status": "INACTIVE",
+    "current_positions": 0,
+    "total_trades": 22,
+    "profit_total": -85.25,
+    "last_heartbeat": "2024-01-15T12:30:00Z",
+    "symbol": "MULTIPLE",
+    "timeframe": "M1",
+    "magic_number": 11111,
+    "version": "1.0.5"
+  }
+]
