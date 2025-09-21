@@ -1,0 +1,49 @@
+{
+  "name": "flutter-trading-app-tools",
+  "version": "1.0.0",
+  "description": "Ferramentas de deploy para Flutter Trading App",
+  "main": "scripts/deploy.js",
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "deploy": "node scripts/deploy.js",
+    "check": "flutter doctor -v",
+    "clean": "flutter clean && flutter pub get",
+    "build:android-debug": "flutter build apk --debug",
+    "build:android-release": "flutter build apk --release",
+    "build:android-bundle": "flutter build appbundle --release",
+    "build:web": "flutter build web",
+    "build:windows": "flutter build windows --release",
+    "serve": "flutter run -d web-server --web-port 8080",
+    "run:android": "flutter run",
+    "run:web": "flutter run -d chrome",
+    "test": "flutter test",
+    "analyze": "flutter analyze",
+    "format": "flutter format .",
+    "doctor": "flutter doctor",
+    "postinstall": "echo 'Dependências instaladas com sucesso!'"
+  },
+  "keywords": [
+    "flutter",
+    "trading",
+    "deploy",
+    "mobile",
+    "app",
+    "mt5",
+    "dashboard"
+  ],
+  "author": "Trading System Team",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "inquirer": "^8.2.5",
+    "ora": "^5.4.1",
+    "express": "^4.18.2",
+    "http-server": "^14.1.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
